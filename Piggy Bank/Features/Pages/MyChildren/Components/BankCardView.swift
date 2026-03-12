@@ -41,9 +41,18 @@ struct BankCardView: View {
                 .font(FontType.regular.fontType(size: 14))
                 .foregroundStyle(.white.opacity(0.9))
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 150, alignment: .leading)
         .padding(20)
-        .background(Color(.secondaryBlue))
+        .background(
+            LinearGradient(
+                colors: [
+                    Color("primaryGradientstart"),
+                    Color("primaryGradientend")
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 

@@ -10,6 +10,7 @@ import SwiftUI
 struct ChildInfoView: View {
     let child: Children
     let onBack: () -> Void
+    @State private var showCreateGoalSheet = false
 
     var body: some View {
         ScrollView {
@@ -35,6 +36,11 @@ struct ChildInfoView: View {
                         .foregroundStyle(.primary)
                 }
             }
+        }
+        .sheet(isPresented: $showCreateGoalSheet) {
+            CreateNewGoalSheet(childName: child.name, onDismiss: {
+                showCreateGoalSheet = false
+            })
         }
     }
 
@@ -84,7 +90,7 @@ struct ChildInfoView: View {
                     .foregroundStyle(.primary)
                 Spacer()
                 Button {
-                    // Add new piggy bank
+                    showCreateGoalSheet = true
                 } label: {
                     Image(systemName: "plus")
                         .font(FontType.medium.fontType(size: 16))
