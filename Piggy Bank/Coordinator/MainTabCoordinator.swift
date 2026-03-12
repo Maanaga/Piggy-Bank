@@ -19,7 +19,7 @@ final class MainTabCoordinator: CoordinatorProtocol {
     func start() {
         let tabBarController = UITabBarController()
 
-        let bankNav = UINavigationController(rootViewController: makeHostingController(for: BankView()))
+        let bankNav = UINavigationController(rootViewController: makeHostingController(for: ChildMainView()))
         bankNav.tabBarItem = UITabBarItem(
             title: "Bank",
             image: UIImage(systemName: "banknote"),
