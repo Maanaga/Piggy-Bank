@@ -18,6 +18,15 @@ final class AppCoordinator: CoordinatorProtocol {
     }
 
     func start() {
+        let signInView = SignInView(onSignIn: { [weak self] in
+            self?.startMainFlow()
+        })
+        let hosting = UIHostingController(rootView: signInView)
+        window.rootViewController = hosting
+        window.makeKeyAndVisible()
+    }
+
+    private func startMainFlow() {
         let mainTabCoordinator = MainTabCoordinator(window: window, appCoordinator: self)
         addChild(mainTabCoordinator)
         mainTabCoordinator.start()
