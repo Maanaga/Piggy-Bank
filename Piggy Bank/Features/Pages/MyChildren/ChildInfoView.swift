@@ -21,7 +21,10 @@ struct ChildInfoView: View {
             .padding(.bottom, 80)
         }
         .background(Color.white)
+        .navigationTitle(child.name)
+        .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
+        .navigationBarHidden(false)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {

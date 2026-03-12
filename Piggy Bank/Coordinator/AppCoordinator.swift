@@ -34,9 +34,14 @@ final class AppCoordinator: CoordinatorProtocol {
         })
         let vc = UIHostingController(rootView: view)
         nav.pushViewController(vc, animated: true)
+        nav.setNavigationBarHidden(false, animated: true)
     }
 
     private func popChildInfo() {
-        childrenNavigationController?.popViewController(animated: true)
+        guard let nav = childrenNavigationController else { return }
+        nav.popViewController(animated: true)
+        if nav.viewControllers.count == 1 {
+            nav.setNavigationBarHidden(true, animated: true)
+        }
     }
 }
