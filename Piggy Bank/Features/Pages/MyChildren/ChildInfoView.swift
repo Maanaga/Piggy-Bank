@@ -43,7 +43,7 @@ struct ChildInfoView: View {
             VStack(alignment: .leading, spacing: 0) {
                 headerSection(child: child)
                 bankCardSection(child: child)
-                activePiggyBanksSection
+                activePiggyBanksSection(child: child)
             }
             .padding(.bottom, 80)
         }
@@ -84,7 +84,7 @@ struct ChildInfoView: View {
         .padding(.top, 20)
     }
 
-    private var activePiggyBanksSection: some View {
+    private func activePiggyBanksSection(child: Children) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Active Piggy Banks")
@@ -124,6 +124,19 @@ struct ChildInfoView: View {
                     iconName: "paintpalette.fill",
                     accentColor: Color("primaryGreen")
                 )
+                
+                ForEach(viewModel.goals(for: child)) { goal in
+                    GoalCard(
+                        title: goal.title,
+                        checkpointsCompleted: goal.checkpointsCompleted,
+                        checkpointsTotal: goal.checkpointsTotal,
+                        status: goal.status,
+                        currentAmount: goal.currentAmount,
+                        goalAmount: goal.goalAmount,
+                        iconName: goal.iconName,
+                        accentColor: Color("primaryBlue")
+                    )
+                }
             }
         }
         .padding(.horizontal, 20)

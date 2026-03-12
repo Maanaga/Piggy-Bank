@@ -14,6 +14,8 @@ final class MyChildrenViewModel: ObservableObject {
 
     @Published private(set) var selectedChild: Children?
 
+    @Published var goalsByChildName: [String: [PiggyBankGoal]] = [:]
+
     @Published var showCreateGoalSheet: Bool = false
     @Published var step: Int = 1
     @Published var goalName: String = ""
@@ -25,9 +27,16 @@ final class MyChildrenViewModel: ObservableObject {
 
     var onBack: (() -> Void)?
 
+    static let goalIconSfSymbols: [String] = [
+        "target", "bicycle", "gamecontroller.fill", "airplane", "iphone",
+        "graduationcap.fill", "gift.fill", "heart.fill", "star.fill", "trophy.fill",
+        "rocket.fill", "music.note", "camera.fill", "square", "paintpalette.fill",
+        "tshirt.fill", "fork.knife", "birthday.cake.fill", "bag.fill", "house.fill"
+    ]
+
     init(children: [Children]) {
         self.children = children
-        self.checkpoints = [CheckpointRow(amount: "", parentContribution: "")]
+        self.checkpoints = [CheckpointRow(amount: "0", parentContribution: "0")]
     }
 
     func selectChild(_ child: Children) {
@@ -72,7 +81,7 @@ final class MyChildrenViewModel: ObservableObject {
     }
 
     func addCheckpoint() {
-        checkpoints.append(CheckpointRow(amount: "", parentContribution: ""))
+        checkpoints.append(CheckpointRow(amount: "0", parentContribution: "0"))
         step2Errors = Step2ValidationErrors(
             checkpointErrors: step2Errors.checkpointErrors + [(nil, nil)]
         )
@@ -102,9 +111,37 @@ final class MyChildrenViewModel: ObservableObject {
             errors.append((amountError, contributionError))
         }
         step2Errors = Step2ValidationErrors(checkpointErrors: errors)
-        if step2Errors.isEmpty {
-            dismissCreateGoalSheet()
+        guard step2Errors.isEmpty, let child = selectedChild else { return }
+        let amountInt = (parseDecimal(goalAmount.trimmingCharacters(in: .whitespacesAndNewlines)) as NSDecimalNumber?)?.intValue ?? 0
+        let iconName: String
+        if let idx = selectedIconIndex, idx >= 0, idx < Self.goalIconSfSymbols.count {
+            iconName = Self.goalIconSfSymbols[idx]
+        } else {
+            iconName = "star.fill"
         }
+        let newGoal = PiggyBankGoal.new(
+            title: goalName.trimmingCharacters(in: .whitespacesAndNewlines),
+            iconName: iconName,
+            goalAmount: max(0, amountInt),
+            checkpointsTotal: checkpoints.count
+        )
+        goalsByChildName[child.name, default: []].append(newGoal)
+        resetCreateGoalForm()
+        dismissCreateGoalSheet()
+    }
+
+    func resetCreateGoalForm() {
+        step = 1
+        goalName = ""
+        selectedIconIndex = nil
+        goalAmount = ""
+        checkpoints = [CheckpointRow(amount: "0", parentContribution: "0")]
+        step1Errors = Step1ValidationErrors()
+        step2Errors = Step2ValidationErrors()
+    }
+
+    func goals(for child: Children) -> [PiggyBankGoal] {
+        goalsByChildName[child.name] ?? []
     }
 
     func parseDecimal(_ string: String) -> Decimal? {
