@@ -26,12 +26,12 @@ struct GoalCard: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
                 ZStack {
-                    Circle()
-                        .fill(accentColor.opacity(0.25))
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(accentColor)
                         .frame(width: 44, height: 44)
                     Image(systemName: iconName)
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(accentColor)
+                        .foregroundStyle(.white)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -72,7 +72,7 @@ struct GoalCard: View {
                 .progressViewStyle(.linear)
                 .tint(accentColor)
                 .background(Color(.systemGray5))
-                .scaleEffect(x: 1, y: 1.5, anchor: .center)
+                .scaleEffect(x: 1, y: 5, anchor: .center)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
 
             HStack {

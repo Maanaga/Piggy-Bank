@@ -21,31 +21,31 @@ struct TotalProgressCard: View {
             HStack(spacing: 6) {
                 Image(systemName: "chart.line.uptrend.xyaxis")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color("secondaryBlue"))
+                    .foregroundStyle(.white)
                 Text("Total Progress")
                     .font(FontType.medium.fontType(size: 14))
-                    .foregroundStyle(Color("secondaryBlue"))
+                    .foregroundStyle(.white)
             }
 
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("\(currentAmount) ₾")
                     .font(FontType.bold.fontType(size: 28))
-                    .foregroundStyle(Color("primaryBlue"))
+                    .foregroundStyle(.white)
                 Text("of \(targetAmount) ₾")
                     .font(FontType.medium.fontType(size: 16))
-                    .foregroundStyle(Color("secondaryBlue"))
+                    .foregroundStyle(.white)
             }
 
             ProgressView(value: progress)
                 .progressViewStyle(.linear)
-                .tint(Color("primaryBlue"))
+                .tint(Color(.white))
                 .background(Color(.systemGray5))
-                .scaleEffect(x: 1, y: 1.5, anchor: .center)
+                .scaleEffect(x: 1, y: 5, anchor: .center)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.systemGray6))
+        .background(Color(.secondaryBlue))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
