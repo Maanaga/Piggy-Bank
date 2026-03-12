@@ -32,8 +32,9 @@ private let goalIcons: [(name: String, sfSymbol: String)] = [
 
 struct CreateNewGoalStep1View: View {
     @Binding var goalName: String
-    @Binding var selectedIconIndex: Int
+    @Binding var selectedIconIndex: Int?
     @Binding var goalAmount: String
+    let errors: Step1ValidationErrors
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -46,7 +47,16 @@ struct CreateNewGoalStep1View: View {
                     .padding(12)
                     .background(Color(.systemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(errors.goalName != nil ? Color.red : Color.clear, lineWidth: errors.goalName != nil ? 1 : 0)
+                    )
                     .font(FontType.regular.fontType(size: 16))
+                if let error = errors.goalName {
+                    Text(error)
+                        .font(FontType.regular.fontType(size: 12))
+                        .foregroundStyle(.red)
+                }
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -68,6 +78,11 @@ struct CreateNewGoalStep1View: View {
                         .buttonStyle(.plain)
                     }
                 }
+                if let error = errors.icon {
+                    Text(error)
+                        .font(FontType.regular.fontType(size: 12))
+                        .foregroundStyle(.red)
+                }
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -86,9 +101,18 @@ struct CreateNewGoalStep1View: View {
                 }
                 .background(Color(.systemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(errors.goalAmount != nil ? Color.red : Color.clear, lineWidth: errors.goalAmount != nil ? 1 : 0)
+                )
                 Text("Goal: \(goalAmount.isEmpty ? "0" : goalAmount)₾")
                     .font(FontType.regular.fontType(size: 12))
                     .foregroundStyle(.secondary)
+                if let error = errors.goalAmount {
+                    Text(error)
+                        .font(FontType.regular.fontType(size: 12))
+                        .foregroundStyle(.red)
+                }
             }
         }
         .padding(.horizontal, 20)
@@ -99,7 +123,8 @@ struct CreateNewGoalStep1View: View {
 #Preview {
     CreateNewGoalStep1View(
         goalName: .constant(""),
-        selectedIconIndex: .constant(0),
-        goalAmount: .constant("")
+        selectedIconIndex: .constant(nil),
+        goalAmount: .constant(""),
+        errors: Step1ValidationErrors()
     )
 }

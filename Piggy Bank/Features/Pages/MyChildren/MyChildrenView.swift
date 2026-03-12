@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct MyChildrenView: View {
-    let children: [Children]
-    let onChildSelected: (Children) -> Void
+    @ObservedObject var viewModel: MyChildrenViewModel
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -57,7 +56,7 @@ struct MyChildrenView: View {
 
     private var childrenCardsSection: some View {
         VStack(spacing: 12) {
-            ForEach(Array(children.enumerated()), id: \.offset) { index, child in
+            ForEach(Array(viewModel.children.enumerated()), id: \.offset) { index, child in
                 ChildrenCardView(
                     name: child.name,
                     avatarEmoji: child.avatarEmoji,
@@ -66,7 +65,7 @@ struct MyChildrenView: View {
                     notificationCount: index == 0 ? 1 : nil
                 )
                 .onTapGesture {
-                    onChildSelected(child)
+                    viewModel.onChildSelected?(child)
                 }
             }
         }
@@ -91,11 +90,9 @@ struct MyChildrenView: View {
 }
 
 #Preview {
-    MyChildrenView(
-        children: [
-            Children(name: "Sophie Anderson", role: .children, avatarEmoji: "👧", balance: 125.50, iban: "GE00XXXX4532"),
-            Children(name: "Max Anderson", role: .children, avatarEmoji: "👦", balance: 85.00, iban: "GE00XXXX7821")
-        ],
-        onChildSelected: { _ in }
-    )
+    let vm = MyChildrenViewModel(children: [
+        Children(name: "Sophie Anderson", role: .children, avatarEmoji: "👧", balance: 125.50, iban: "GE00XXXX4532"),
+        Children(name: "Max Anderson", role: .children, avatarEmoji: "👦", balance: 85.00, iban: "GE00XXXX7821")
+    ])
+    return MyChildrenView(viewModel: vm)
 }

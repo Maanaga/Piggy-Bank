@@ -19,6 +19,7 @@ struct CreateNewGoalCheckpointFieldLabel: View {
 
 struct CreateNewGoalCheckpointTextField: View {
     @Binding var value: String
+    var hasError: Bool = false
 
     var body: some View {
         HStack {
@@ -37,7 +38,7 @@ struct CreateNewGoalCheckpointTextField: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .stroke(Color(.systemGray4), lineWidth: 1)
+                .stroke(hasError ? Color.red : Color(.systemGray4), lineWidth: hasError ? 1.5 : 1)
         )
     }
 }

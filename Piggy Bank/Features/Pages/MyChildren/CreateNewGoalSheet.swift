@@ -7,34 +7,25 @@
 
 import SwiftUI
 
-struct CheckpointRow: Identifiable {
-    let id = UUID()
-    var amount: String
-    var parentContribution: String
-}
-
 struct CreateNewGoalSheet: View {
-    let childName: String
-    let onDismiss: () -> Void
+    @ObservedObject var viewModel: MyChildrenViewModel
 
-    @State private var step = 1
-    @State private var goalName = ""
-    @State private var selectedIconIndex = 0
-    @State private var goalAmount = ""
-    @State private var checkpoints: [CheckpointRow] = [CheckpointRow(amount: "0", parentContribution: "0")]
+    private var childName: String {
+        viewModel.selectedChild?.name ?? ""
+    }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 CreateNewGoalHeaderView(childName: childName)
-                CreateNewGoalStepIndicatorView(currentStep: step)
+                CreateNewGoalStepIndicatorView(currentStep: viewModel.step)
                 stepContent
                 Spacer(minLength: 0)
                 CreateNewGoalBottomButtonsView(
-                    step: step,
-                    onNext: { step = 2 },
-                    onBack: { step = 1 },
-                    onCreateGoal: { onDismiss() }
+                    step: viewModel.step,
+                    onNext: { viewModel.validateAndGoToStep2() },
+                    onBack: { viewModel.goBackToStep1() },
+                    onCreateGoal: { viewModel.validateAndCreateGoal() }
                 )
             }
             .background(Color(.systemGroupedBackground))
@@ -42,7 +33,7 @@ struct CreateNewGoalSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        onDismiss()
+                        viewModel.dismissCreateGoalSheet()
                     } label: {
                         Image(systemName: "xmark")
                             .font(FontType.medium.fontType(size: 16))
@@ -56,18 +47,18 @@ struct CreateNewGoalSheet: View {
     @ViewBuilder
     private var stepContent: some View {
         ScrollView {
-            if step == 1 {
+            if viewModel.step == 1 {
                 CreateNewGoalStep1View(
-                    goalName: $goalName,
-                    selectedIconIndex: $selectedIconIndex,
-                    goalAmount: $goalAmount
+                    goalName: $viewModel.goalName,
+                    selectedIconIndex: $viewModel.selectedIconIndex,
+                    goalAmount: $viewModel.goalAmount,
+                    errors: viewModel.step1Errors
                 )
             } else {
                 CreateNewGoalStep2View(
-                    checkpoints: $checkpoints,
-                    onAddCheckpoint: {
-                        checkpoints.append(CheckpointRow(amount: "0", parentContribution: "0"))
-                    }
+                    checkpoints: $viewModel.checkpoints,
+                    errors: viewModel.step2Errors,
+                    onAddCheckpoint: { viewModel.addCheckpoint() }
                 )
             }
         }
@@ -76,5 +67,9 @@ struct CreateNewGoalSheet: View {
 }
 
 #Preview {
-    CreateNewGoalSheet(childName: "Sophie Anderson", onDismiss: {})
+    let vm = MyChildrenViewModel(children: [
+        Children(name: "Sophie Anderson", role: .children, avatarEmoji: "👧", balance: 125.50, iban: "GE00XXXX4532")
+    ])
+    vm.selectChild(vm.children[0])
+    return CreateNewGoalSheet(viewModel: vm)
 }

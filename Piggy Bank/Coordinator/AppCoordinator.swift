@@ -27,17 +27,15 @@ final class AppCoordinator: CoordinatorProtocol {
         childrenNavigationController = navigationController
     }
 
-    func showChildInfo(_ child: Children) {
+    func showChildInfo(_ viewModel: MyChildrenViewModel) {
         guard let nav = childrenNavigationController else { return }
-        let view = ChildInfoView(child: child, onBack: { [weak self] in
-            self?.popChildInfo()
-        })
+        let view = ChildInfoView(viewModel: viewModel)
         let vc = UIHostingController(rootView: view)
         nav.pushViewController(vc, animated: true)
         nav.setNavigationBarHidden(false, animated: true)
     }
 
-    private func popChildInfo() {
+     func popChildInfo() {
         guard let nav = childrenNavigationController else { return }
         nav.popViewController(animated: true)
         if nav.viewControllers.count == 1 {

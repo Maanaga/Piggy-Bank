@@ -1,0 +1,114 @@
+//
+//  MyChildrenViewModel.swift
+//  Piggy Bank
+//
+//  Created by Luka Managadze on 13.03.26.
+//
+
+import Foundation
+import Combine
+
+final class MyChildrenViewModel: ObservableObject {
+    let children: [Children]
+    var onChildSelected: ((Children) -> Void)?
+
+    @Published private(set) var selectedChild: Children?
+
+    @Published var showCreateGoalSheet: Bool = false
+    @Published var step: Int = 1
+    @Published var goalName: String = ""
+    @Published var selectedIconIndex: Int? = nil
+    @Published var goalAmount: String = ""
+    @Published var checkpoints: [CheckpointRow]
+    @Published var step1Errors: Step1ValidationErrors = Step1ValidationErrors()
+    @Published var step2Errors: Step2ValidationErrors = Step2ValidationErrors()
+
+    var onBack: (() -> Void)?
+
+    init(children: [Children]) {
+        self.children = children
+        self.checkpoints = [CheckpointRow(amount: "", parentContribution: "")]
+    }
+
+    func selectChild(_ child: Children) {
+        selectedChild = child
+    }
+
+    func clearSelectedChild() {
+        selectedChild = nil
+    }
+
+    func dismissCreateGoalSheet() {
+        showCreateGoalSheet = false
+    }
+
+    func validateAndGoToStep2() {
+        let nameTrimmed = goalName.trimmingCharacters(in: .whitespacesAndNewlines)
+        var errors = Step1ValidationErrors()
+        if nameTrimmed.isEmpty {
+            errors.goalName = "Goal name is required"
+        }
+        let amountTrimmed = goalAmount.trimmingCharacters(in: .whitespacesAndNewlines)
+        if amountTrimmed.isEmpty {
+            errors.goalAmount = "Goal amount is required"
+        } else if let value = parseDecimal(amountTrimmed), value <= 0 {
+            errors.goalAmount = "Enter a valid amount greater than 0"
+        } else if parseDecimal(amountTrimmed) == nil {
+            errors.goalAmount = "Enter a valid amount"
+        }
+        if selectedIconIndex == nil {
+            errors.icon = "Please choose an icon"
+        }
+        step1Errors = errors
+        if errors.isEmpty {
+            step = 2
+        }
+    }
+
+    func goBackToStep1() {
+        step = 1
+        step1Errors = Step1ValidationErrors()
+        step2Errors = Step2ValidationErrors()
+    }
+
+    func addCheckpoint() {
+        checkpoints.append(CheckpointRow(amount: "", parentContribution: ""))
+        step2Errors = Step2ValidationErrors(
+            checkpointErrors: step2Errors.checkpointErrors + [(nil, nil)]
+        )
+    }
+
+    func validateAndCreateGoal() {
+        var errors: [(amount: String?, parentContribution: String?)] = []
+        for checkpoint in checkpoints {
+            var amountError: String?
+            var contributionError: String?
+            let amountTrimmed = checkpoint.amount.trimmingCharacters(in: .whitespacesAndNewlines)
+            if amountTrimmed.isEmpty {
+                amountError = "Amount is required"
+            } else if let value = parseDecimal(checkpoint.amount), value < 0 {
+                amountError = "Enter a valid amount"
+            } else if parseDecimal(checkpoint.amount) == nil {
+                amountError = "Enter a valid amount"
+            }
+            let contributionTrimmed = checkpoint.parentContribution.trimmingCharacters(in: .whitespacesAndNewlines)
+            if contributionTrimmed.isEmpty {
+                contributionError = "Parent contribution is required"
+            } else if let value = parseDecimal(checkpoint.parentContribution), value < 0 {
+                contributionError = "Enter a valid amount"
+            } else if parseDecimal(checkpoint.parentContribution) == nil {
+                contributionError = "Enter a valid amount"
+            }
+            errors.append((amountError, contributionError))
+        }
+        step2Errors = Step2ValidationErrors(checkpointErrors: errors)
+        if step2Errors.isEmpty {
+            dismissCreateGoalSheet()
+        }
+    }
+
+    func parseDecimal(_ string: String) -> Decimal? {
+        let normalized = string.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")
+        return Decimal(string: normalized)
+    }
+}

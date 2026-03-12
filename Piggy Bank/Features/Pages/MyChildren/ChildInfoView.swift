@@ -8,28 +8,24 @@
 import SwiftUI
 
 struct ChildInfoView: View {
-    let child: Children
-    let onBack: () -> Void
-    @State private var showCreateGoalSheet = false
+    @ObservedObject var viewModel: MyChildrenViewModel
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                headerSection
-                bankCardSection
-                activePiggyBanksSection
+        Group {
+            if let child = viewModel.selectedChild {
+                mainContent(child: child)
+            } else {
+                Color.clear
+                    .onAppear { viewModel.onBack?() }
             }
-            .padding(.bottom, 80)
         }
-        .background(Color.white)
-        .navigationTitle(child.name)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .navigationBarHidden(false)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    onBack()
+                    viewModel.onBack?()
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(FontType.medium.fontType(size: 18))
@@ -37,14 +33,25 @@ struct ChildInfoView: View {
                 }
             }
         }
-        .sheet(isPresented: $showCreateGoalSheet) {
-            CreateNewGoalSheet(childName: child.name, onDismiss: {
-                showCreateGoalSheet = false
-            })
+        .sheet(isPresented: $viewModel.showCreateGoalSheet) {
+            CreateNewGoalSheet(viewModel: viewModel)
         }
     }
 
-    private var headerSection: some View {
+    private func mainContent(child: Children) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                headerSection(child: child)
+                bankCardSection(child: child)
+                activePiggyBanksSection
+            }
+            .padding(.bottom, 80)
+        }
+        .background(Color.white)
+        .navigationTitle(child.name)
+    }
+
+    private func headerSection(child: Children) -> some View {
         HStack(alignment: .center, spacing: 12) {
             ZStack {
                 Circle()
@@ -67,19 +74,14 @@ struct ChildInfoView: View {
         .background(Color(.systemBackground))
     }
 
-    private var bankCardSection: some View {
+    private func bankCardSection(child: Children) -> some View {
         BankCardView(
             cardTitle: "TBC Card",
             balance: child.balance,
-            cardLastFour: ibanLastFour
+            cardLastFour: String(child.iban.suffix(4))
         )
         .padding(.horizontal, 20)
         .padding(.top, 20)
-    }
-
-    private var ibanLastFour: String {
-        let suffix = child.iban.suffix(4)
-        return String(suffix)
     }
 
     private var activePiggyBanksSection: some View {
@@ -90,7 +92,7 @@ struct ChildInfoView: View {
                     .foregroundStyle(.primary)
                 Spacer()
                 Button {
-                    showCreateGoalSheet = true
+                    viewModel.showCreateGoalSheet = true
                 } label: {
                     Image(systemName: "plus")
                         .font(FontType.medium.fontType(size: 16))
@@ -130,14 +132,9 @@ struct ChildInfoView: View {
 }
 
 #Preview {
-    ChildInfoView(
-        child: Children(
-            name: "Sophie Anderson",
-            role: .children,
-            avatarEmoji: "👧",
-            balance: 125.50,
-            iban: "GE00XXXX4532"
-        ),
-        onBack: {}
-    )
+    let vm = MyChildrenViewModel(children: [
+        Children(name: "Sophie Anderson", role: .children, avatarEmoji: "👧", balance: 125.50, iban: "GE00XXXX4532")
+    ])
+    vm.selectChild(vm.children[0])
+    return ChildInfoView(viewModel: vm)
 }

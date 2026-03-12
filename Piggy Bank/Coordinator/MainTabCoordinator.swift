@@ -43,9 +43,16 @@ final class MainTabCoordinator: CoordinatorProtocol {
             Children(name: "Sophie Anderson", role: .children, avatarEmoji: "👧", balance: 125.50, iban: "GE00XXXX4532"),
             Children(name: "Max Anderson", role: .children, avatarEmoji: "👦", balance: 85.00, iban: "GE00XXXX7821")
         ]
-        let childrenView = MyChildrenView(children: children, onChildSelected: { [weak self] child in
-            self?.appCoordinator?.showChildInfo(child)
-        })
+        let childrenViewModel = MyChildrenViewModel(children: children)
+        childrenViewModel.onChildSelected = { [weak self] child in
+            childrenViewModel.selectChild(child)
+            self?.appCoordinator?.showChildInfo(childrenViewModel)
+        }
+        childrenViewModel.onBack = { [weak self] in
+            childrenViewModel.clearSelectedChild()
+            self?.appCoordinator?.popChildInfo()
+        }
+        let childrenView = MyChildrenView(viewModel: childrenViewModel)
         childrenNav.setViewControllers([UIHostingController(rootView: childrenView)], animated: false)
         childrenNav.tabBarItem = UITabBarItem(
             title: "Children",
