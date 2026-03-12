@@ -30,7 +30,7 @@ struct ChildMainView: View {
             .background(Color(.systemBackground))
             .ignoresSafeArea(edges: .top)
 
-            infoFAB
+            //infoFAB
         }
         .navigationBarHidden(true)
     }
@@ -96,7 +96,7 @@ struct ChildMainView: View {
             // Info action
         } label: {
             Image(systemName: "info")
-                .font(.system(size: 20, weight: .semibold))
+                .font(FontType.medium.fontType(size: 20))
                 .foregroundStyle(.white)
                 .frame(width: 56, height: 56)
                 .background(Color("primaryBlue"))

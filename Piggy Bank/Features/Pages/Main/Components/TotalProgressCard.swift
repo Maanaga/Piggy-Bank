@@ -20,7 +20,7 @@ struct TotalProgressCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 6) {
                 Image(systemName: "chart.line.uptrend.xyaxis")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(FontType.medium.fontType(size: 14))
                     .foregroundStyle(.white)
                 Text("Total Progress")
                     .font(FontType.medium.fontType(size: 14))

@@ -30,7 +30,7 @@ struct GoalCard: View {
                         .fill(accentColor)
                         .frame(width: 44, height: 44)
                     Image(systemName: iconName)
-                        .font(.system(size: 20, weight: .medium))
+                        .font(FontType.medium.fontType(size: 20))
                         .foregroundStyle(.white)
                 }
 
@@ -48,7 +48,7 @@ struct GoalCard: View {
                 if case .pending = status {
                     HStack(spacing: 4) {
                         Image(systemName: "info.circle.fill")
-                            .font(.system(size: 12))
+                            .font(FontType.medium.fontType(size: 12))
                             .foregroundStyle(.white)
                         Text("Pending")
                             .font(FontType.medium.fontType(size: 12))
@@ -115,7 +115,7 @@ struct CheckpointDotsView: View {
                             .fill(accentColor)
                             .frame(width: 24, height: 24)
                         Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .bold))
+                            .font(FontType.bold.fontType(size: 10))
                             .foregroundStyle(.white)
                     }
                 } else if index == completed {
@@ -124,7 +124,7 @@ struct CheckpointDotsView: View {
                             .fill(Color("primaryOrange"))
                             .frame(width: 24, height: 24)
                         Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .bold))
+                            .font(FontType.bold.fontType(size: 10))
                             .foregroundStyle(.white)
                     }
                 } else {

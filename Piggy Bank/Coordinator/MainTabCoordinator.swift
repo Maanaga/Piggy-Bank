@@ -35,7 +35,7 @@ final class MainTabCoordinator: CoordinatorProtocol {
         )
         awardsNav.tabBarItem.tag = 1
 
-        let historyNav = UINavigationController(rootViewController: makeHostingController(for: HistoryView()))
+        let historyNav = UINavigationController(rootViewController: makeHostingController(for: MyChildrenView()))
         historyNav.tabBarItem = UITabBarItem(
             title: "History",
             image: UIImage(systemName: "clock.arrow.circlepath"),
