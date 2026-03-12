@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct MyChildrenView: View {
+    let children: [Children]
+    let onChildSelected: (Children) -> Void
+
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             ScrollView {
@@ -17,7 +20,7 @@ struct MyChildrenView: View {
                 }
                 .padding(.bottom, 80)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color.white)
 
             //infoFAB
         }
@@ -54,27 +57,17 @@ struct MyChildrenView: View {
 
     private var childrenCardsSection: some View {
         VStack(spacing: 12) {
-            ChildrenCardView(
-                name: "Sophie Anderson",
-                age: 10,
-                avatarEmoji: "👧",
-                balance: 125.50,
-                cardLastFour: "4532",
-                notificationCount: 1
-            )
-            .onTapGesture {
-                // Navigate to child details
-            }
-
-            ChildrenCardView(
-                name: "Max Anderson",
-                age: 8,
-                avatarEmoji: "👦",
-                balance: 85.00,
-                cardLastFour: "7821"
-            )
-            .onTapGesture {
-                // Navigate to child details
+            ForEach(Array(children.enumerated()), id: \.offset) { index, child in
+                ChildrenCardView(
+                    name: child.name,
+                    avatarEmoji: child.avatarEmoji,
+                    balance: child.balance,
+                    cardLastFour: String(child.iban.suffix(4)),
+                    notificationCount: index == 0 ? 1 : nil
+                )
+                .onTapGesture {
+                    onChildSelected(child)
+                }
             }
         }
         .padding(.horizontal, 20)
@@ -98,7 +91,11 @@ struct MyChildrenView: View {
 }
 
 #Preview {
-    NavigationStack {
-        MyChildrenView()
-    }
+    MyChildrenView(
+        children: [
+            Children(name: "Sophie Anderson", role: .children, avatarEmoji: "👧", balance: 125.50, iban: "GE00XXXX4532"),
+            Children(name: "Max Anderson", role: .children, avatarEmoji: "👦", balance: 85.00, iban: "GE00XXXX7821")
+        ],
+        onChildSelected: { _ in }
+    )
 }

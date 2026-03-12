@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ChildrenCardView: View {
     let name: String
-    let age: Int
     let avatarEmoji: String
     let balance: Decimal
     let cardLastFour: String
@@ -30,9 +29,6 @@ struct ChildrenCardView: View {
                     Text(name)
                         .font(FontType.bold.fontType(size: 16))
                         .foregroundStyle(.primary)
-                    Text("\(age) years old")
-                        .font(FontType.regular.fontType(size: 14))
-                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()
