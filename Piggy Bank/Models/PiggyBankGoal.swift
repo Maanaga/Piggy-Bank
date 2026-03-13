@@ -9,6 +9,7 @@ import Foundation
 
 struct PiggyBankGoal: Identifiable {
     let id: UUID
+    let piggyBankId: Int
     let title: String
     let iconName: String
     let goalAmount: Int
@@ -20,6 +21,7 @@ struct PiggyBankGoal: Identifiable {
     static func new(title: String, iconName: String, goalAmount: Int, checkpointsTotal: Int) -> PiggyBankGoal {
         PiggyBankGoal(
             id: UUID(),
+            piggyBankId: 0,
             title: title,
             iconName: iconName,
             goalAmount: goalAmount,
@@ -38,6 +40,7 @@ struct PiggyBankGoal: Identifiable {
         let iconName = (dto.iconUrl?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "gift.fill"
         return PiggyBankGoal(
             id: UUID(),
+            piggyBankId: dto.piggyBankId,
             title: dto.title,
             iconName: iconName,
             goalAmount: dto.targetAmount,

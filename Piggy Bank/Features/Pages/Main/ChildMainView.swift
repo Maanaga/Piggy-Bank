@@ -11,26 +11,45 @@ private struct AddMoneySheetContext: Identifiable {
     let id = UUID()
     let goals: [PiggyBankGoal]
     let sources: [PaymentSource]
+    let childId: Int?
+    let iban: String?
 }
 
 struct ChildMainView: View {
-    let goals: [PiggyBankGoal]
     let childId: Int?
+    @State private var goals: [PiggyBankGoal]
     @State private var addMoneyContext: AddMoneySheetContext?
+    @State private var isRefreshing = false
     private let childInfoService = ChildInfoNetworkService()
 
-    init(goals: [PiggyBankGoal] = [], childId: Int? = nil) {
-        self.goals = goals
+    init(goals initialGoals: [PiggyBankGoal] = [], childId: Int? = nil) {
         self.childId = childId
+        _goals = State(initialValue: initialGoals)
     }
 
     private var addMoneyGoals: [PiggyBankGoal] {
         goals.isEmpty ? [Self.placeholderGoal] : goals
     }
 
+    private func refreshGoals() async {
+        guard let cid = childId else { return }
+        await MainActor.run { isRefreshing = true }
+        do {
+            let info = try await childInfoService.getChildInfo(childId: cid)
+            let updated = (info.piggyBanks ?? []).map { PiggyBankGoal.from(dto: $0) }
+            await MainActor.run {
+                goals = updated
+                isRefreshing = false
+            }
+        } catch {
+            await MainActor.run { isRefreshing = false }
+        }
+    }
+
     private static var placeholderGoal: PiggyBankGoal {
         PiggyBankGoal(
             id: UUID(),
+            piggyBankId: 0,
             title: "Goal",
             iconName: "gift.fill",
             goalAmount: 0,
@@ -54,6 +73,12 @@ struct ChildMainView: View {
         ZStack(alignment: .bottomTrailing) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
+                    if isRefreshing {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                    }
                     VStack(alignment: .leading, spacing: 0) {
                         headerSection
                         totalProgressSection
@@ -69,6 +94,7 @@ struct ChildMainView: View {
                 }
                 .padding(.bottom, 80)
             }
+            .refreshable { await refreshGoals() }
             .background(Color(.systemBackground))
             .ignoresSafeArea(edges: .top)
             .navigationBarHidden(true)
@@ -79,16 +105,16 @@ struct ChildMainView: View {
                         do {
                             let info = try await childInfoService.getChildInfo(childId: cid)
                             await MainActor.run {
-                                addMoneyContext = AddMoneySheetContext(goals: addMoneyGoals, sources: Self.sources(from: info))
+                                addMoneyContext = AddMoneySheetContext(goals: addMoneyGoals, sources: Self.sources(from: info), childId: cid, iban: info.iban)
                             }
                         } catch {
                             await MainActor.run {
-                                addMoneyContext = AddMoneySheetContext(goals: addMoneyGoals, sources: Self.sources(from: nil))
+                                addMoneyContext = AddMoneySheetContext(goals: addMoneyGoals, sources: Self.sources(from: nil), childId: cid, iban: nil)
                             }
                         }
                     }
                 } else {
-                    addMoneyContext = AddMoneySheetContext(goals: addMoneyGoals, sources: Self.sources(from: nil))
+                    addMoneyContext = AddMoneySheetContext(goals: addMoneyGoals, sources: Self.sources(from: nil), childId: nil, iban: nil)
                 }
             } label: {
                 Image(systemName: "plus")
@@ -106,6 +132,8 @@ struct ChildMainView: View {
                 AddMoneyView(
                     goals: context.goals,
                     sources: context.sources,
+                    childId: context.childId,
+                    iban: context.iban,
                     onBack: { addMoneyContext = nil },
                     onContinue: { _ in addMoneyContext = nil }
                 )
@@ -177,6 +205,7 @@ struct ChildMainView: View {
         ChildMainView(goals: [
             PiggyBankGoal(
                 id: UUID(),
+                piggyBankId: 1,
                 title: "Bass Guitar",
                 iconName: "gift.fill",
                 goalAmount: 1000,

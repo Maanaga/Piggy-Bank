@@ -13,8 +13,8 @@ struct AddMoneyView: View {
     var onBack: () -> Void
     var onContinue: (Int) -> Void
 
-    init(goals: [PiggyBankGoal], sources: [PaymentSource] = [], onBack: @escaping () -> Void, onContinue: @escaping (Int) -> Void) {
-        _viewModel = StateObject(wrappedValue: AddMoneyViewModel(goals: goals, sources: sources))
+    init(goals: [PiggyBankGoal], sources: [PaymentSource] = [], childId: Int? = nil, iban: String? = nil, onBack: @escaping () -> Void, onContinue: @escaping (Int) -> Void) {
+        _viewModel = StateObject(wrappedValue: AddMoneyViewModel(goals: goals, sources: sources, childId: childId, iban: iban))
         self.onBack = onBack
         self.onContinue = onContinue
     }
@@ -69,11 +69,23 @@ struct AddMoneyView: View {
                             fromText: fromText,
                             toText: viewModel.selectedGoal.title,
                             newBalance: viewModel.selectedGoal.currentAmount + viewModel.displayAmount,
-                            onCancel: { showConfirmTransfer = false },
-                            onConfirm: {
-                                onContinue(viewModel.displayAmount)
+                            errorMessage: viewModel.transferError,
+                            isConfirming: viewModel.isTransferring,
+                            onCancel: {
+                                viewModel.transferError = nil
                                 showConfirmTransfer = false
-                                onBack()
+                            },
+                            onConfirm: {
+                                Task {
+                                    await viewModel.confirmTransfer()
+                                    await MainActor.run {
+                                        if viewModel.transferError == nil {
+                                            showConfirmTransfer = false
+                                            onContinue(viewModel.displayAmount)
+                                            onBack()
+                                        }
+                                    }
+                                }
                             }
                         )
                     }
@@ -121,8 +133,8 @@ struct AddMoneyView: View {
     NavigationStack {
         AddMoneyView(
             goals: [
-                PiggyBankGoal(id: UUID(), title: "New Bicycle", iconName: "bicycle", goalAmount: 250, checkpointsTotal: 6, currentAmount: 175, checkpointsCompleted: 4, status: .pending),
-                PiggyBankGoal(id: UUID(), title: "Camera", iconName: "camera", goalAmount: 1500, checkpointsTotal: 3, currentAmount: 0, checkpointsCompleted: 0, status: .pending)
+                PiggyBankGoal(id: UUID(), piggyBankId: 1, title: "New Bicycle", iconName: "bicycle", goalAmount: 250, checkpointsTotal: 6, currentAmount: 175, checkpointsCompleted: 4, status: .pending),
+                PiggyBankGoal(id: UUID(), piggyBankId: 2, title: "Camera", iconName: "camera", goalAmount: 1500, checkpointsTotal: 3, currentAmount: 0, checkpointsCompleted: 0, status: .pending)
             ],
             onBack: {},
             onContinue: { _ in }

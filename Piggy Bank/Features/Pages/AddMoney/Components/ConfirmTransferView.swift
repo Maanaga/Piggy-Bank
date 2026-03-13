@@ -12,6 +12,8 @@ struct ConfirmTransferView: View {
     let fromText: String
     let toText: String
     let newBalance: Int
+    var errorMessage: String? = nil
+    var isConfirming: Bool = false
     let onCancel: () -> Void
     let onConfirm: () -> Void
 
@@ -38,6 +40,15 @@ struct ConfirmTransferView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 32)
 
+            if let errorMessage = errorMessage {
+                Text(errorMessage)
+                    .font(FontType.regular.fontType(size: 14))
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 12)
+            }
+
             HStack(spacing: 12) {
                 Button(action: onCancel) {
                     Text("Cancel")
@@ -49,12 +60,18 @@ struct ConfirmTransferView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .buttonStyle(.plain)
+                .disabled(isConfirming)
 
                 Button(action: onConfirm) {
                     HStack(spacing: 6) {
-                        Text("Drop it in!")
-                        Text("💰")
-                            .font(FontType.regular.fontType(size: 16))
+                        if isConfirming {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Text("Drop it in!")
+                            Text("💰")
+                                .font(FontType.regular.fontType(size: 16))
+                        }
                     }
                     .font(FontType.bold.fontType(size: 16))
                     .foregroundStyle(.white)
@@ -64,6 +81,7 @@ struct ConfirmTransferView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .buttonStyle(.plain)
+                .disabled(isConfirming)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 24)

@@ -119,6 +119,20 @@ final class NetworkService {
         try await requestVoid(endpoint)
     }
 
+    func post(
+        _ path: String,
+        queryItems: [URLQueryItem],
+        headers: [String: String] = [:]
+    ) async throws {
+        let endpoint = APIEndpoint(
+            path: path,
+            method: .post,
+            headers: headers,
+            queryItems: queryItems
+        )
+        try await requestVoid(endpoint)
+    }
+
     func put<T: Decodable, Body: Encodable>(
         _ path: String,
         body: Body,
