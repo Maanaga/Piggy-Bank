@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AddMoneyView: View {
     @StateObject private var viewModel: AddMoneyViewModel
+    @State private var showConfirmTransfer = false
     var onBack: () -> Void
     var onContinue: (Int) -> Void
 
@@ -16,6 +17,11 @@ struct AddMoneyView: View {
         _viewModel = StateObject(wrappedValue: AddMoneyViewModel(goal: goal, sources: sources))
         self.onBack = onBack
         self.onContinue = onContinue
+    }
+
+    private var fromText: String {
+        guard let source = viewModel.sources.first else { return "" }
+        return "\(source.title) **** \(source.lastFour)"
     }
 
     var body: some View {
@@ -30,7 +36,7 @@ struct AddMoneyView: View {
                         canContinue: viewModel.canContinue,
                         action: {
                             viewModel.continueTapped()
-                            onContinue(viewModel.displayAmount)
+                            showConfirmTransfer = true
                         }
                     )
                 }
@@ -52,6 +58,28 @@ struct AddMoneyView: View {
                 }
             }
         }
+        .overlay {
+            if showConfirmTransfer {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture { showConfirmTransfer = false }
+                    .overlay {
+                        ConfirmTransferView(
+                            amount: viewModel.displayAmount,
+                            fromText: fromText,
+                            toText: viewModel.goal.title,
+                            newBalance: viewModel.goal.currentAmount + viewModel.displayAmount,
+                            onCancel: { showConfirmTransfer = false },
+                            onConfirm: {
+                                onContinue(viewModel.displayAmount)
+                                showConfirmTransfer = false
+                                onBack()
+                            }
+                        )
+                    }
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: showConfirmTransfer)
     }
 
     private var fromSection: some View {
