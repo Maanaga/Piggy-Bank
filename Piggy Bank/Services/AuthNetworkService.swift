@@ -5,12 +5,12 @@ struct SignInRequest: Encodable {
     let password: String
 }
 
-struct SignInResponse: Decodable {
+struct SignInResponse: Codable {
     let children: [ChildDTO]
 }
 
-struct PiggyBankRefDTO: Decodable {
-    //TODO: piggybank decode
+struct PiggyBankRefDTO: Codable {
+    // TODO: piggybank decode
 }
 
 

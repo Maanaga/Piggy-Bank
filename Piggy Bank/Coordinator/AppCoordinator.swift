@@ -18,6 +18,11 @@ final class AppCoordinator: CoordinatorProtocol {
     }
 
     func start() {
+        if let savedResponse = UserSessionStorage.load() {
+            let children = savedResponse.children.map { Children.from(dto: $0) }
+            startMainFlow(children: children)
+            return
+        }
         let signInView = SignInView(onSignIn: { [weak self] children in
             self?.startMainFlow(children: children)
         })

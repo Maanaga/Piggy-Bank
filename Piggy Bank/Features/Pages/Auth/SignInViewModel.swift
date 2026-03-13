@@ -29,6 +29,7 @@ final class SignInViewModel: ObservableObject {
             defer { isLoading = false }
             do {
                 let response = try await authService.signIn(username: user, password: pass)
+                UserSessionStorage.save(response)
                 let children = response.children.map { Children.from(dto: $0) }
                 onSignInSuccess?(children)
             } catch {
