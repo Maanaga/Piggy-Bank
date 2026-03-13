@@ -62,16 +62,6 @@ struct ChildMainView: View {
             .padding(.top, 20)
     }
 
-    private static let goalAccentColors: [Color] = [
-        Color("primaryBlue"),
-        Color("primaryGreen"),
-        Color("primaryOrange")
-    ]
-
-    private func accentColor(for index: Int) -> Color {
-        Self.goalAccentColors[index % Self.goalAccentColors.count]
-    }
-
     private var yourGoalsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Your Goals")
@@ -86,7 +76,7 @@ struct ChildMainView: View {
                     .padding(.vertical, 24)
             } else {
                 VStack(spacing: 12) {
-                    ForEach(Array(goals.enumerated()), id: \.element.id) { index, goal in
+                    ForEach(goals) { goal in
                         GoalCard(
                             title: goal.title,
                             checkpointsCompleted: goal.checkpointsCompleted,
@@ -95,7 +85,7 @@ struct ChildMainView: View {
                             currentAmount: goal.currentAmount,
                             goalAmount: goal.goalAmount,
                             iconName: goal.iconName,
-                            accentColor: accentColor(for: index)
+                            accentColor: Color("primaryBlue")
                         )
                     }
                 }
