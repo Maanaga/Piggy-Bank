@@ -9,32 +9,76 @@ import SwiftUI
 
 struct ChildMainView: View {
     let goals: [PiggyBankGoal]
+    @State private var showAddMoney = false
 
     init(goals: [PiggyBankGoal] = []) {
         self.goals = goals
     }
 
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: 0) {
-                    headerSection
-                    totalProgressSection
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.bottom, 48)
-                .background(
-                    Color("primaryBlue")
-                        .ignoresSafeArea(edges: .top)
-                )
+    private var addMoneyGoal: PiggyBankGoal? {
+        goals.first ?? Self.placeholderGoal
+    }
 
-                yourGoalsSection
+    private static var placeholderGoal: PiggyBankGoal {
+        PiggyBankGoal(
+            id: UUID(),
+            title: "Goal",
+            iconName: "gift.fill",
+            goalAmount: 0,
+            checkpointsTotal: 1,
+            currentAmount: 0,
+            checkpointsCompleted: 0,
+            status: .pending
+        )
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        headerSection
+                        totalProgressSection
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 48)
+                    .background(
+                        Color("primaryBlue")
+                            .ignoresSafeArea(edges: .top)
+                    )
+
+                    yourGoalsSection
+                }
+                .padding(.bottom, 80)
             }
-            .padding(.bottom, 80)
+            .background(Color(.systemBackground))
+            .ignoresSafeArea(edges: .top)
+            .navigationBarHidden(true)
+
+            Button {
+                showAddMoney = true
+            } label: {
+                Image(systemName: "plus")
+                    .font(FontType.medium.fontType(size: 24))
+                    .foregroundStyle(.white)
+                    .frame(width: 56, height: 56)
+                    .background(Color("primaryBlue"))
+                    .clipShape(Circle())
+            }
+            .padding(.trailing, 20)
+            .padding(.bottom, 40)
         }
-        .background(Color(.systemBackground))
-        .ignoresSafeArea(edges: .top)
-        .navigationBarHidden(true)
+        .sheet(isPresented: $showAddMoney) {
+            if let goal = addMoneyGoal {
+                NavigationStack {
+                    AddMoneyView(
+                        goal: goal,
+                        onBack: { showAddMoney = false },
+                        onContinue: { _ in showAddMoney = false }
+                    )
+                }
+            }
+        }
     }
 
     private var headerSection: some View {
