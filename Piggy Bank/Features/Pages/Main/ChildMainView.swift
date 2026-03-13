@@ -135,7 +135,12 @@ struct ChildMainView: View {
                     childId: context.childId,
                     iban: context.iban,
                     onBack: { addMoneyContext = nil },
-                    onContinue: { _ in addMoneyContext = nil }
+                    onContinue: { _ in
+                        Task {
+                            await refreshGoals()
+                        }
+                        addMoneyContext = nil
+                    }
                 )
             }
         }
