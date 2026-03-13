@@ -18,21 +18,17 @@ final class AppCoordinator: CoordinatorProtocol {
     }
 
     func start() {
-        if let savedResponse = UserSessionStorage.load() {
-            let children = savedResponse.children.map { Children.from(dto: $0) }
-            startMainFlow(children: children)
-            return
-        }
-        let signInView = SignInView(onSignIn: { [weak self] children in
-            self?.startMainFlow(children: children)
+        let signInView = SignInView(onSignIn: { [weak self] response in
+            self?.startMainFlow(response: response)
         })
         let hosting = UIHostingController(rootView: signInView)
         window.rootViewController = hosting
         window.makeKeyAndVisible()
     }
 
-    private func startMainFlow(children: [Children]) {
-        let mainTabCoordinator = MainTabCoordinator(window: window, appCoordinator: self, children: children)
+    private func startMainFlow(response: SignInResponse) {
+        let children = response.children.map { Children.from(dto: $0) }
+        let mainTabCoordinator = MainTabCoordinator(window: window, appCoordinator: self, children: children, userRole: Role.from(apiValue: response.role))
         addChild(mainTabCoordinator)
         mainTabCoordinator.start()
     }

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SignInView: View {
     @StateObject private var viewModel = SignInViewModel()
-    var onSignIn: ([Children]) -> Void
+    var onSignIn: (SignInResponse) -> Void
 
     var body: some View {
         ZStack {

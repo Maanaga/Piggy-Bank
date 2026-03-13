@@ -7,7 +7,7 @@ final class SignInViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 
-    var onSignInSuccess: (([Children]) -> Void)?
+    var onSignInSuccess: ((SignInResponse) -> Void)?
 
     private let authService: AuthNetworkService
 
@@ -29,9 +29,7 @@ final class SignInViewModel: ObservableObject {
             defer { isLoading = false }
             do {
                 let response = try await authService.signIn(username: user, password: pass)
-                UserSessionStorage.save(response)
-                let children = response.children.map { Children.from(dto: $0) }
-                onSignInSuccess?(children)
+                onSignInSuccess?(response)
             } catch {
                 errorMessage = error.localizedDescription
             }
