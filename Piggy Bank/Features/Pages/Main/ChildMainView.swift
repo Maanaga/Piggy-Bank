@@ -8,55 +8,27 @@
 import SwiftUI
 
 struct ChildMainView: View {
-    @State private var showAddMoney = false
-
-    private static var defaultAddMoneyGoal: PiggyBankGoal {
-        PiggyBankGoal(
-            id: UUID(),
-            title: "New Bicycle",
-            iconName: "bicycle",
-            goalAmount: 250,
-            checkpointsTotal: 6,
-            currentAmount: 175,
-            checkpointsCompleted: 4,
-            status: .pending
-        )
-    }
-
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            ScrollView {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 0) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        headerSection
-                        totalProgressSection
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 48)
-                    .background(
-                        Color("primaryBlue")
-                            .ignoresSafeArea(edges: .top)
-                    )
-
-                    yourGoalsSection
+                    headerSection
+                    totalProgressSection
                 }
-                .padding(.bottom, 80)
-            }
-            .background(Color(.systemBackground))
-            .ignoresSafeArea(edges: .top)
-
-            addMoneyFAB
-        }
-        .navigationBarHidden(true)
-        .sheet(isPresented: $showAddMoney) {
-            NavigationStack {
-                AddMoneyView(
-                    goal: Self.defaultAddMoneyGoal,
-                    onBack: { showAddMoney = false },
-                    onContinue: { _ in showAddMoney = false }
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, 48)
+                .background(
+                    Color("primaryBlue")
+                        .ignoresSafeArea(edges: .top)
                 )
+
+                yourGoalsSection
             }
+            .padding(.bottom, 80)
         }
+        .background(Color(.systemBackground))
+        .ignoresSafeArea(edges: .top)
+        .navigationBarHidden(true)
     }
 
     private var headerSection: some View {
@@ -113,21 +85,6 @@ struct ChildMainView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 24)
-    }
-
-    private var addMoneyFAB: some View {
-        Button {
-            showAddMoney = true
-        } label: {
-            Image(systemName: "plus")
-                .font(FontType.medium.fontType(size: 24))
-                .foregroundStyle(.white)
-                .frame(width: 56, height: 56)
-                .background(Color("primaryBlue"))
-                .clipShape(Circle())
-        }
-        .padding(.trailing, 20)
-        .padding(.bottom, 40)
     }
 }
 
