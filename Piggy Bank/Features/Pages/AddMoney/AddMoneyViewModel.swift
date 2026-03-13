@@ -16,9 +16,10 @@ struct PaymentSource: Identifiable {
 }
 
 final class AddMoneyViewModel: ObservableObject {
-    let goal: PiggyBankGoal
+    let goals: [PiggyBankGoal]
     let sources: [PaymentSource]
 
+    @Published var selectedGoal: PiggyBankGoal
     @Published var selectedAmount: Int = 0
     @Published var isCustomMode: Bool = false
     @Published var customAmountText: String = "0"
@@ -34,9 +35,14 @@ final class AddMoneyViewModel: ObservableObject {
         displayAmount > 0
     }
 
-    init(goal: PiggyBankGoal, sources: [PaymentSource] = []) {
-        self.goal = goal
+    init(goals: [PiggyBankGoal], sources: [PaymentSource] = []) {
+        self.goals = goals.isEmpty ? [PiggyBankGoal(id: UUID(), title: "Goal", iconName: "gift.fill", goalAmount: 0, checkpointsTotal: 1, currentAmount: 0, checkpointsCompleted: 0, status: .pending)] : goals
+        self.selectedGoal = self.goals[0]
         self.sources = sources.isEmpty ? [PaymentSource(title: "My TBC Card", lastFour: "4532", balance: 125.50)] : sources
+    }
+
+    func selectGoal(_ goal: PiggyBankGoal) {
+        selectedGoal = goal
     }
 
     func selectQuickAmount(_ amount: Int) {

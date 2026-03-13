@@ -13,8 +13,8 @@ struct AddMoneyView: View {
     var onBack: () -> Void
     var onContinue: (Int) -> Void
 
-    init(goal: PiggyBankGoal, sources: [PaymentSource] = [], onBack: @escaping () -> Void, onContinue: @escaping (Int) -> Void) {
-        _viewModel = StateObject(wrappedValue: AddMoneyViewModel(goal: goal, sources: sources))
+    init(goals: [PiggyBankGoal], sources: [PaymentSource] = [], onBack: @escaping () -> Void, onContinue: @escaping (Int) -> Void) {
+        _viewModel = StateObject(wrappedValue: AddMoneyViewModel(goals: goals, sources: sources))
         self.onBack = onBack
         self.onContinue = onContinue
     }
@@ -26,7 +26,7 @@ struct AddMoneyView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            AddMoneyHeaderView(goalTitle: viewModel.goal.title)
+            AddMoneyHeaderView(goalTitle: viewModel.selectedGoal.title)
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     fromSection
@@ -67,8 +67,8 @@ struct AddMoneyView: View {
                         ConfirmTransferView(
                             amount: viewModel.displayAmount,
                             fromText: fromText,
-                            toText: viewModel.goal.title,
-                            newBalance: viewModel.goal.currentAmount + viewModel.displayAmount,
+                            toText: viewModel.selectedGoal.title,
+                            newBalance: viewModel.selectedGoal.currentAmount + viewModel.displayAmount,
                             onCancel: { showConfirmTransfer = false },
                             onConfirm: {
                                 onContinue(viewModel.displayAmount)
@@ -100,7 +100,19 @@ struct AddMoneyView: View {
                 .font(FontType.medium.fontType(size: 14))
                 .foregroundStyle(.secondary)
 
-            AddMoneyGoalCardView(goal: viewModel.goal)
+            if viewModel.goals.count == 1 {
+                AddMoneyGoalCardView(goal: viewModel.selectedGoal)
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(viewModel.goals) { goal in
+                        AddMoneyGoalCardView(
+                            goal: goal,
+                            isSelected: viewModel.selectedGoal.id == goal.id,
+                            onTap: { viewModel.selectGoal(goal) }
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -108,16 +120,10 @@ struct AddMoneyView: View {
 #Preview {
     NavigationStack {
         AddMoneyView(
-            goal: PiggyBankGoal(
-                id: UUID(),
-                title: "New Bicycle",
-                iconName: "bicycle",
-                goalAmount: 250,
-                checkpointsTotal: 6,
-                currentAmount: 175,
-                checkpointsCompleted: 4,
-                status: .pending
-            ),
+            goals: [
+                PiggyBankGoal(id: UUID(), title: "New Bicycle", iconName: "bicycle", goalAmount: 250, checkpointsTotal: 6, currentAmount: 175, checkpointsCompleted: 4, status: .pending),
+                PiggyBankGoal(id: UUID(), title: "Camera", iconName: "camera", goalAmount: 1500, checkpointsTotal: 3, currentAmount: 0, checkpointsCompleted: 0, status: .pending)
+            ],
             onBack: {},
             onContinue: { _ in }
         )

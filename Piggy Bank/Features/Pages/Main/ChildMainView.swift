@@ -9,7 +9,7 @@ import SwiftUI
 
 private struct AddMoneySheetContext: Identifiable {
     let id = UUID()
-    let goal: PiggyBankGoal
+    let goals: [PiggyBankGoal]
     let sources: [PaymentSource]
 }
 
@@ -24,8 +24,8 @@ struct ChildMainView: View {
         self.childId = childId
     }
 
-    private var addMoneyGoal: PiggyBankGoal? {
-        goals.first ?? Self.placeholderGoal
+    private var addMoneyGoals: [PiggyBankGoal] {
+        goals.isEmpty ? [Self.placeholderGoal] : goals
     }
 
     private static var placeholderGoal: PiggyBankGoal {
@@ -74,22 +74,21 @@ struct ChildMainView: View {
             .navigationBarHidden(true)
 
             Button {
-                guard let goal = addMoneyGoal else { return }
                 if let cid = childId {
                     Task {
                         do {
                             let info = try await childInfoService.getChildInfo(childId: cid)
                             await MainActor.run {
-                                addMoneyContext = AddMoneySheetContext(goal: goal, sources: Self.sources(from: info))
+                                addMoneyContext = AddMoneySheetContext(goals: addMoneyGoals, sources: Self.sources(from: info))
                             }
                         } catch {
                             await MainActor.run {
-                                addMoneyContext = AddMoneySheetContext(goal: goal, sources: Self.sources(from: nil))
+                                addMoneyContext = AddMoneySheetContext(goals: addMoneyGoals, sources: Self.sources(from: nil))
                             }
                         }
                     }
                 } else {
-                    addMoneyContext = AddMoneySheetContext(goal: goal, sources: Self.sources(from: nil))
+                    addMoneyContext = AddMoneySheetContext(goals: addMoneyGoals, sources: Self.sources(from: nil))
                 }
             } label: {
                 Image(systemName: "plus")
@@ -105,7 +104,7 @@ struct ChildMainView: View {
         .sheet(item: $addMoneyContext) { context in
             NavigationStack {
                 AddMoneyView(
-                    goal: context.goal,
+                    goals: context.goals,
                     sources: context.sources,
                     onBack: { addMoneyContext = nil },
                     onContinue: { _ in addMoneyContext = nil }
