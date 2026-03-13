@@ -21,8 +21,6 @@ final class AddMoneyViewModel: ObservableObject {
     let childId: Int?
     let iban: String?
     private let transferService: ChildTransferNetworkService
-    private let childInfoService: ChildInfoNetworkService
-    private let piggyBanksService: PiggyBanksNetworkService
 
     @Published var selectedGoal: PiggyBankGoal
     @Published var selectedAmount: Int = 0
@@ -52,9 +50,7 @@ final class AddMoneyViewModel: ObservableObject {
         sources: [PaymentSource] = [],
         childId: Int? = nil,
         iban: String? = nil,
-        transferService: ChildTransferNetworkService = ChildTransferNetworkService(),
-        childInfoService: ChildInfoNetworkService = ChildInfoNetworkService(),
-        piggyBanksService: PiggyBanksNetworkService = PiggyBanksNetworkService()
+        transferService: ChildTransferNetworkService = ChildTransferNetworkService()
     ) {
         self.goals = goals.isEmpty ? [PiggyBankGoal(id: UUID(), piggyBankId: 0, title: "Goal", iconName: "gift.fill", goalAmount: 0, checkpointsTotal: 1, currentAmount: 0, checkpointsCompleted: 0, status: .active)] : goals
         self.selectedGoal = self.goals[0]
@@ -62,8 +58,6 @@ final class AddMoneyViewModel: ObservableObject {
         self.childId = childId
         self.iban = iban
         self.transferService = transferService
-        self.childInfoService = childInfoService
-        self.piggyBanksService = piggyBanksService
     }
 
     func selectGoal(_ goal: PiggyBankGoal) {
@@ -85,7 +79,6 @@ final class AddMoneyViewModel: ObservableObject {
                 iban: iban,
                 piggyBankId: selectedGoal.piggyBankId
             )
-            try await autoRedeemReachedCheckpointsIfNeeded(childId: childId, piggyBankId: selectedGoal.piggyBankId)
             await MainActor.run {
                 isTransferring = false
             }
@@ -111,24 +104,6 @@ final class AddMoneyViewModel: ObservableObject {
 
     func continueTapped() {
         // TODO: Submit add money flow
-    }
-
-    private func autoRedeemReachedCheckpointsIfNeeded(childId: Int, piggyBankId: Int) async throws {
-        let info = try await childInfoService.getChildInfo(childId: childId)
-        guard let piggyBank = info.piggyBanks?.first(where: { $0.piggyBankId == piggyBankId }) else {
-            return
-        }
-
-        let pendingReachedCheckpoints = (piggyBank.checkpoints ?? []).filter {
-            ($0.reachedAt != nil || piggyBank.currentAmount >= $0.targetAmount) && !$0.isApprovedByParent
-        }
-
-        for checkpoint in pendingReachedCheckpoints {
-            try await piggyBanksService.redeemCheckpoint(
-                piggyBankId: piggyBankId,
-                checkpointId: checkpoint.checkpointId
-            )
-        }
     }
 }
 

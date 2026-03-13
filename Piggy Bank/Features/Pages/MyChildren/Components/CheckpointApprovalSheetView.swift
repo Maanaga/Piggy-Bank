@@ -29,7 +29,7 @@ struct CheckpointApprovalSheetView: View {
                 .font(FontType.bold.fontType(size: 32))
                 .foregroundStyle(.white)
         }
-        .padding(.top, 20)
+        .padding(.top, 36)
     }
 
     private var titleSection: some View {
