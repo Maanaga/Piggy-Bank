@@ -5,6 +5,15 @@ struct SignInRequest: Encodable {
     let password: String
 }
 
+struct ParentSignInResponseDTO: Decodable {
+    let children: [ChildDTO]
+    let id: Int
+    let name: String
+    let surname: String
+    let balance: Int
+    let role: Int
+}
+
 struct SignInResponse: Codable {
     let children: [ChildDTO]
     let role: Int
@@ -31,9 +40,9 @@ struct SignInResponse: Codable {
     }
 }
 
-
 final class AuthNetworkService {
     private let networkService: NetworkService
+    private let decoder = JSONDecoder()
 
     init(networkService: NetworkService = AppEnvironment.networkService) {
         self.networkService = networkService
@@ -41,11 +50,12 @@ final class AuthNetworkService {
 
     func signIn(username: String, password: String) async throws -> SignInResponse {
         let request = SignInRequest(username: username, password: password)
-        let user: ChildDTO = try await networkService.post(
-            "api/User",
-            body: request,
-            as: ChildDTO.self
-        )
-        return SignInResponse(children: [user], role: user.role)
+        let data = try await networkService.postData("api/User", body: request)
+
+        if let parentResponse = try? decoder.decode(ParentSignInResponseDTO.self, from: data) {
+            return SignInResponse(children: parentResponse.children, role: parentResponse.role)
+        }
+        let child = try decoder.decode(ChildDTO.self, from: data)
+        return SignInResponse(children: [child], role: child.role)
     }
 }

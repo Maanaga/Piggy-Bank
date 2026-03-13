@@ -91,6 +91,20 @@ final class NetworkService {
         return try await request(endpoint, as: type)
     }
 
+    func postData<Body: Encodable>(
+        _ path: String,
+        body: Body,
+        headers: [String: String] = [:]
+    ) async throws -> Data {
+        let endpoint = try APIEndpoint(
+            path: path,
+            method: .post,
+            headers: headers,
+            jsonBody: body
+        )
+        return try await request(endpoint)
+    }
+
     func post<Body: Encodable>(
         _ path: String,
         body: Body,

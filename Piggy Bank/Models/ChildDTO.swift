@@ -12,7 +12,7 @@ struct PiggyBankDTO: Codable {
     let title: String
     let targetAmount: Int
     let currentAmount: Int
-    let bonusOnReach: Int
+    let bonusOnReach: Int?
     let childId: Int
     let parentId: Int
     let isApproved: Bool
@@ -30,7 +30,7 @@ struct PiggyBankDTO: Codable {
         title = try c.decode(String.self, forKey: .title)
         targetAmount = try c.decode(Int.self, forKey: .targetAmount)
         currentAmount = try c.decode(Int.self, forKey: .currentAmount)
-        bonusOnReach = try c.decode(Int.self, forKey: .bonusOnReach)
+        bonusOnReach = try c.decodeIfPresent(Int.self, forKey: .bonusOnReach)
         childId = try c.decode(Int.self, forKey: .childId)
         parentId = try c.decode(Int.self, forKey: .parentId)
         isApproved = try c.decode(Bool.self, forKey: .isApproved)
@@ -44,7 +44,7 @@ struct PiggyBankDTO: Codable {
         try c.encode(title, forKey: .title)
         try c.encode(targetAmount, forKey: .targetAmount)
         try c.encode(currentAmount, forKey: .currentAmount)
-        try c.encode(bonusOnReach, forKey: .bonusOnReach)
+        try c.encodeIfPresent(bonusOnReach, forKey: .bonusOnReach)
         try c.encode(childId, forKey: .childId)
         try c.encode(parentId, forKey: .parentId)
         try c.encode(isApproved, forKey: .isApproved)
@@ -53,7 +53,48 @@ struct PiggyBankDTO: Codable {
     }
 }
 
-struct CheckpointDTO: Codable {}
+struct CheckpointDTO: Codable {
+    let checkpointId: Int
+    let piggyBankId: Int
+    let level: Int
+    let targetAmount: Int
+    let prizeAmount: Int
+    let rewardPoints: Int
+    let isApprovedByParent: Bool
+    let rewardGiven: Bool
+    let reachedAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case checkpointId, piggyBankId, level, targetAmount, prizeAmount
+        case rewardPoints, isApprovedByParent, rewardGiven, reachedAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        checkpointId = try c.decode(Int.self, forKey: .checkpointId)
+        piggyBankId = try c.decode(Int.self, forKey: .piggyBankId)
+        level = try c.decode(Int.self, forKey: .level)
+        targetAmount = try c.decode(Int.self, forKey: .targetAmount)
+        prizeAmount = try c.decode(Int.self, forKey: .prizeAmount)
+        rewardPoints = try c.decode(Int.self, forKey: .rewardPoints)
+        isApprovedByParent = try c.decode(Bool.self, forKey: .isApprovedByParent)
+        rewardGiven = try c.decode(Bool.self, forKey: .rewardGiven)
+        reachedAt = try c.decodeIfPresent(String.self, forKey: .reachedAt)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(checkpointId, forKey: .checkpointId)
+        try c.encode(piggyBankId, forKey: .piggyBankId)
+        try c.encode(level, forKey: .level)
+        try c.encode(targetAmount, forKey: .targetAmount)
+        try c.encode(prizeAmount, forKey: .prizeAmount)
+        try c.encode(rewardPoints, forKey: .rewardPoints)
+        try c.encode(isApprovedByParent, forKey: .isApprovedByParent)
+        try c.encode(rewardGiven, forKey: .rewardGiven)
+        try c.encodeIfPresent(reachedAt, forKey: .reachedAt)
+    }
+}
 
 struct ChildDTO: Codable {
     let id: Int
