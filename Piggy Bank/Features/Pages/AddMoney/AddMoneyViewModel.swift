@@ -25,7 +25,7 @@ final class AddMoneyViewModel: ObservableObject {
     @Published var selectedGoal: PiggyBankGoal
     @Published var selectedAmount: Int = 0
     @Published var isCustomMode: Bool = false
-    @Published var customAmountText: String = "0"
+    @Published var customAmountText: String = ""
     @Published var isTransferring = false
     @Published var transferError: String?
 
@@ -86,13 +86,14 @@ final class AddMoneyViewModel: ObservableObject {
 
     func selectQuickAmount(_ amount: Int) {
         isCustomMode = false
-        customAmountText = "0"
+        customAmountText = ""
         selectedAmount = amount
     }
 
     func selectCustom() {
         isCustomMode = true
         selectedAmount = 0
+        customAmountText = ""
     }
 
     func continueTapped() {

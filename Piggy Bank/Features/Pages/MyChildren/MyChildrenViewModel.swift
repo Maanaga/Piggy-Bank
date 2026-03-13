@@ -9,7 +9,7 @@ import Foundation
 import Combine
 
 final class MyChildrenViewModel: ObservableObject {
-    let children: [Children]
+    @Published var children: [Children]
     let parentId: Int?
     var onChildSelected: ((Children) -> Void)?
 
@@ -31,6 +31,7 @@ final class MyChildrenViewModel: ObservableObject {
     var onBack: (() -> Void)?
 
     private let piggyBanksService: PiggyBanksNetworkService
+    private let childInfoService: ChildInfoNetworkService
 
     static let goalIconSfSymbols: [String] = [
         "target", "bicycle", "gamecontroller.fill", "airplane", "iphone",
@@ -39,12 +40,47 @@ final class MyChildrenViewModel: ObservableObject {
         "tshirt.fill", "fork.knife", "birthday.cake.fill", "bag.fill", "house.fill"
     ]
 
-    init(children: [Children], parentId: Int? = nil, initialGoalsByChildName: [String: [PiggyBankGoal]] = [:], piggyBanksService: PiggyBanksNetworkService = PiggyBanksNetworkService()) {
+    init(
+        children: [Children],
+        parentId: Int? = nil,
+        initialGoalsByChildName: [String: [PiggyBankGoal]] = [:],
+        piggyBanksService: PiggyBanksNetworkService = PiggyBanksNetworkService(),
+        childInfoService: ChildInfoNetworkService = ChildInfoNetworkService()
+    ) {
         self.children = children
         self.parentId = parentId
         self.piggyBanksService = piggyBanksService
-        self.checkpoints = [CheckpointRow(amount: "0", parentContribution: "0")]
+        self.childInfoService = childInfoService
+        self.checkpoints = [CheckpointRow(amount: "", parentContribution: "")]
         self.goalsByChildName = initialGoalsByChildName
+    }
+
+    func refreshChildrenBalances() async {
+        guard !children.isEmpty else { return }
+        var updated: [Children] = []
+        for child in children {
+            if let id = child.id {
+                do {
+                    let info = try await childInfoService.getChildInfo(childId: id)
+                    let refreshed = Children(
+                        id: child.id,
+                        name: child.name,
+                        role: child.role,
+                        avatarEmoji: child.avatarEmoji,
+                        balance: Decimal(info.balance),
+                        iban: info.iban
+                    )
+                    updated.append(refreshed)
+                } catch {
+                    updated.append(child)
+                }
+            } else {
+                updated.append(child)
+            }
+        }
+        await MainActor.run {
+            self.children = updated
+        }
     }
 
     func selectChild(_ child: Children) {
@@ -89,7 +125,7 @@ final class MyChildrenViewModel: ObservableObject {
     }
 
     func addCheckpoint() {
-        checkpoints.append(CheckpointRow(amount: "0", parentContribution: "0"))
+        checkpoints.append(CheckpointRow(amount: "", parentContribution: ""))
         step2Errors = Step2ValidationErrors(
             checkpointErrors: step2Errors.checkpointErrors + [(nil, nil)]
         )
@@ -185,7 +221,7 @@ final class MyChildrenViewModel: ObservableObject {
         goalName = ""
         selectedIconIndex = nil
         goalAmount = ""
-        checkpoints = [CheckpointRow(amount: "0", parentContribution: "0")]
+        checkpoints = [CheckpointRow(amount: "", parentContribution: "")]
         step1Errors = Step1ValidationErrors()
         step2Errors = Step2ValidationErrors()
     }

@@ -84,7 +84,7 @@ struct CreateNewGoalStep2View: View {
 
 #Preview {
     CreateNewGoalStep2View(
-        checkpoints: .constant([CheckpointRow(amount: "0", parentContribution: "0")]),
+        checkpoints: .constant([CheckpointRow(amount: "", parentContribution: "")]),
         errors: Step2ValidationErrors(),
         onAddCheckpoint: {}
     )

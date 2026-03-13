@@ -241,6 +241,7 @@ final class NetworkService {
         }
 
         var request = URLRequest(url: url, timeoutInterval: configuration.timeout)
+        request.cachePolicy = .reloadIgnoringLocalCacheData
         request.httpMethod = endpoint.method.rawValue
         request.httpBody = endpoint.body
 

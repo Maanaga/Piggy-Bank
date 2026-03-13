@@ -9,15 +9,25 @@ import SwiftUI
 
 struct MyChildrenView: View {
     @ObservedObject var viewModel: MyChildrenViewModel
+    @State private var isRefreshing = false
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
+                    if isRefreshing {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: Color("primaryBlue")))
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 12)
+                    }
                     headerSection
                     childrenCardsSection
                 }
                 .padding(.bottom, 80)
+            }
+            .refreshable {
+                await refreshChildren()
             }
             .background(Color.white)
 
@@ -86,6 +96,12 @@ struct MyChildrenView: View {
         }
         .padding(.trailing, 20)
         .padding(.bottom, 100)
+    }
+
+    private func refreshChildren() async {
+        await MainActor.run { isRefreshing = true }
+        await viewModel.refreshChildrenBalances()
+        await MainActor.run { isRefreshing = false }
     }
 }
 
