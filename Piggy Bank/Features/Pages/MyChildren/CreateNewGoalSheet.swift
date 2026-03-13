@@ -20,9 +20,17 @@ struct CreateNewGoalSheet: View {
                 CreateNewGoalHeaderView(childName: childName)
                 CreateNewGoalStepIndicatorView(currentStep: viewModel.step)
                 stepContent
+                if let error = viewModel.createGoalError {
+                    Text(error)
+                        .font(FontType.regular.fontType(size: 14))
+                        .foregroundStyle(.red)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
+                }
                 Spacer(minLength: 0)
                 CreateNewGoalBottomButtonsView(
                     step: viewModel.step,
+                    isCreatingGoal: viewModel.isCreatingGoal,
                     onNext: { viewModel.validateAndGoToStep2() },
                     onBack: { viewModel.goBackToStep1() },
                     onCreateGoal: { viewModel.validateAndCreateGoal() }

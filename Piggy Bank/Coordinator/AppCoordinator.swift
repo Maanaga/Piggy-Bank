@@ -29,7 +29,11 @@ final class AppCoordinator: CoordinatorProtocol {
     private func startMainFlow(response: SignInResponse) {
         let children = response.children.map { Children.from(dto: $0) }
         let piggyBanks: [PiggyBankGoal] = (response.children.first?.piggyBanks ?? []).map { PiggyBankGoal.from(dto: $0) }
-        let mainTabCoordinator = MainTabCoordinator(window: window, appCoordinator: self, children: children, userRole: Role.from(apiValue: response.role), piggyBanks: piggyBanks)
+        let initialGoalsByChildName: [String: [PiggyBankGoal]] = response.children.reduce(into: [:]) { result, dto in
+            let displayName = dto.surname.isEmpty ? dto.name : "\(dto.name) \(dto.surname)"
+            result[displayName] = (dto.piggyBanks ?? []).map { PiggyBankGoal.from(dto: $0) }
+        }
+        let mainTabCoordinator = MainTabCoordinator(window: window, appCoordinator: self, children: children, userRole: Role.from(apiValue: response.role), piggyBanks: piggyBanks, parentId: response.parentId, initialGoalsByChildName: initialGoalsByChildName)
         addChild(mainTabCoordinator)
         mainTabCoordinator.start()
     }

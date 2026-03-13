@@ -10,6 +10,7 @@ import Combine
 
 final class MyChildrenViewModel: ObservableObject {
     let children: [Children]
+    let parentId: Int?
     var onChildSelected: ((Children) -> Void)?
 
     @Published private(set) var selectedChild: Children?
@@ -24,8 +25,12 @@ final class MyChildrenViewModel: ObservableObject {
     @Published var checkpoints: [CheckpointRow]
     @Published var step1Errors: Step1ValidationErrors = Step1ValidationErrors()
     @Published var step2Errors: Step2ValidationErrors = Step2ValidationErrors()
+    @Published var isCreatingGoal: Bool = false
+    @Published var createGoalError: String?
 
     var onBack: (() -> Void)?
+
+    private let piggyBanksService: PiggyBanksNetworkService
 
     static let goalIconSfSymbols: [String] = [
         "target", "bicycle", "gamecontroller.fill", "airplane", "iphone",
@@ -34,9 +39,12 @@ final class MyChildrenViewModel: ObservableObject {
         "tshirt.fill", "fork.knife", "birthday.cake.fill", "bag.fill", "house.fill"
     ]
 
-    init(children: [Children]) {
+    init(children: [Children], parentId: Int? = nil, initialGoalsByChildName: [String: [PiggyBankGoal]] = [:], piggyBanksService: PiggyBanksNetworkService = PiggyBanksNetworkService()) {
         self.children = children
+        self.parentId = parentId
+        self.piggyBanksService = piggyBanksService
         self.checkpoints = [CheckpointRow(amount: "0", parentContribution: "0")]
+        self.goalsByChildName = initialGoalsByChildName
     }
 
     func selectChild(_ child: Children) {
@@ -111,23 +119,65 @@ final class MyChildrenViewModel: ObservableObject {
             errors.append((amountError, contributionError))
         }
         step2Errors = Step2ValidationErrors(checkpointErrors: errors)
-        guard step2Errors.isEmpty, let child = selectedChild else { return }
-        let amountInt = (parseDecimal(goalAmount.trimmingCharacters(in: .whitespacesAndNewlines)) as NSDecimalNumber?)?.intValue ?? 0
+        guard step2Errors.isEmpty, let child = selectedChild, let pid = parentId, let childId = child.id else {
+            if parentId == nil {
+                createGoalError = "Unable to create goal. Please sign in again."
+            } else if selectedChild?.id == nil {
+                createGoalError = "Child information is missing."
+            }
+            return
+        }
+        createGoalError = nil
+        Task { @MainActor in
+            await performCreateGoal(parentId: pid, childId: childId, child: child)
+        }
+    }
+
+    private func performCreateGoal(parentId: Int, childId: Int, child: Children) async {
+        isCreatingGoal = true
+        defer { isCreatingGoal = false }
+
+        let title = goalName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let targetAmount = (parseDecimal(goalAmount.trimmingCharacters(in: .whitespacesAndNewlines)) as NSDecimalNumber?)?.intValue ?? 0
+        let endDate = Calendar.current.date(byAdding: .year, value: 1, to: Date()) ?? Date()
+
+        var checkpointPayloads: [(targetAmount: Int, amountPrize: Int)] = []
+        for cp in checkpoints {
+            let amount = (parseDecimal(cp.amount.trimmingCharacters(in: .whitespacesAndNewlines)) as NSDecimalNumber?)?.intValue ?? 0
+            let prize = (parseDecimal(cp.parentContribution.trimmingCharacters(in: .whitespacesAndNewlines)) as NSDecimalNumber?)?.intValue ?? 0
+            checkpointPayloads.append((targetAmount: amount, amountPrize: prize))
+        }
+
         let iconName: String
         if let idx = selectedIconIndex, idx >= 0, idx < Self.goalIconSfSymbols.count {
             iconName = Self.goalIconSfSymbols[idx]
         } else {
-            iconName = "star.fill"
+            iconName = "gift.fill"
         }
-        let newGoal = PiggyBankGoal.new(
-            title: goalName.trimmingCharacters(in: .whitespacesAndNewlines),
-            iconName: iconName,
-            goalAmount: max(0, amountInt),
-            checkpointsTotal: checkpoints.count
-        )
-        goalsByChildName[child.name, default: []].append(newGoal)
-        resetCreateGoalForm()
-        dismissCreateGoalSheet()
+
+        do {
+            _ = try await piggyBanksService.createPiggyBank(
+                parentId: parentId,
+                childId: childId,
+                title: title,
+                targetAmount: max(0, targetAmount),
+                bonusOnReach: nil,
+                iconUrl: iconName,
+                endDate: endDate,
+                checkpoints: checkpointPayloads
+            )
+            let newGoal = PiggyBankGoal.new(
+                title: title,
+                iconName: iconName,
+                goalAmount: max(0, targetAmount),
+                checkpointsTotal: checkpoints.count
+            )
+            goalsByChildName[child.name, default: []].append(newGoal)
+            resetCreateGoalForm()
+            dismissCreateGoalSheet()
+        } catch {
+            createGoalError = error.localizedDescription
+        }
     }
 
     func resetCreateGoalForm() {

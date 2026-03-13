@@ -13,6 +13,7 @@ struct PiggyBankDTO: Codable {
     let targetAmount: Int
     let currentAmount: Int
     let bonusOnReach: Int?
+    let iconUrl: String?
     let childId: Int
     let parentId: Int
     let isApproved: Bool
@@ -21,7 +22,7 @@ struct PiggyBankDTO: Codable {
 
     enum CodingKeys: String, CodingKey {
         case piggyBankId, title, targetAmount, currentAmount, bonusOnReach
-        case childId, parentId, isApproved, isCompleted, checkpoints
+        case iconUrl, childId, parentId, isApproved, isCompleted, checkpoints
     }
 
     init(from decoder: Decoder) throws {
@@ -31,6 +32,7 @@ struct PiggyBankDTO: Codable {
         targetAmount = try c.decode(Int.self, forKey: .targetAmount)
         currentAmount = try c.decode(Int.self, forKey: .currentAmount)
         bonusOnReach = try c.decodeIfPresent(Int.self, forKey: .bonusOnReach)
+        iconUrl = try c.decodeIfPresent(String.self, forKey: .iconUrl)
         childId = try c.decode(Int.self, forKey: .childId)
         parentId = try c.decode(Int.self, forKey: .parentId)
         isApproved = try c.decode(Bool.self, forKey: .isApproved)
@@ -45,6 +47,7 @@ struct PiggyBankDTO: Codable {
         try c.encode(targetAmount, forKey: .targetAmount)
         try c.encode(currentAmount, forKey: .currentAmount)
         try c.encodeIfPresent(bonusOnReach, forKey: .bonusOnReach)
+        try c.encodeIfPresent(iconUrl, forKey: .iconUrl)
         try c.encode(childId, forKey: .childId)
         try c.encode(parentId, forKey: .parentId)
         try c.encode(isApproved, forKey: .isApproved)

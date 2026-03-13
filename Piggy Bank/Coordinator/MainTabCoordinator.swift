@@ -15,13 +15,17 @@ final class MainTabCoordinator: CoordinatorProtocol {
     private let children: [Children]
     private let userRole: Role
     private let piggyBanks: [PiggyBankGoal]
+    private let parentId: Int?
+    private let initialGoalsByChildName: [String: [PiggyBankGoal]]
 
-    init(window: UIWindow, appCoordinator: AppCoordinator, children: [Children], userRole: Role, piggyBanks: [PiggyBankGoal] = []) {
+    init(window: UIWindow, appCoordinator: AppCoordinator, children: [Children], userRole: Role, piggyBanks: [PiggyBankGoal] = [], parentId: Int? = nil, initialGoalsByChildName: [String: [PiggyBankGoal]] = [:]) {
         self.window = window
         self.appCoordinator = appCoordinator
         self.children = children
         self.userRole = userRole
         self.piggyBanks = piggyBanks
+        self.parentId = parentId
+        self.initialGoalsByChildName = initialGoalsByChildName
     }
 
     func start() {
@@ -32,7 +36,7 @@ final class MainTabCoordinator: CoordinatorProtocol {
         case .parent:
             let childrenNav = UINavigationController()
             appCoordinator?.configureChildrenNavigation(childrenNav)
-            let childrenViewModel = MyChildrenViewModel(children: children)
+            let childrenViewModel = MyChildrenViewModel(children: children, parentId: parentId, initialGoalsByChildName: initialGoalsByChildName)
             childrenViewModel.onChildSelected = { [weak self] child in
                 childrenViewModel.selectChild(child)
                 self?.appCoordinator?.showChildInfo(childrenViewModel)

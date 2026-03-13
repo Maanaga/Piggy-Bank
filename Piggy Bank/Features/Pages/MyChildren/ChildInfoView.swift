@@ -103,44 +103,42 @@ struct ChildInfoView: View {
                 }
             }
 
-            VStack(spacing: 12) {
-                GoalCard(
-                    title: "New Bicycle",
-                    checkpointsCompleted: 4,
-                    checkpointsTotal: 6,
-                    status: .pending,
-                    currentAmount: 175,
-                    goalAmount: 250,
-                    iconName: "bicycle",
-                    accentColor: Color("primaryBlue")
-                )
-                GoalCard(
-                    title: "Art Supplies",
-                    checkpointsCompleted: 2,
-                    checkpointsTotal: 4,
-                    status: .completed,
-                    currentAmount: 45,
-                    goalAmount: 80,
-                    iconName: "paintpalette.fill",
-                    accentColor: Color("primaryGreen")
-                )
-                
-                ForEach(viewModel.goals(for: child)) { goal in
-                    GoalCard(
-                        title: goal.title,
-                        checkpointsCompleted: goal.checkpointsCompleted,
-                        checkpointsTotal: goal.checkpointsTotal,
-                        status: goal.status,
-                        currentAmount: goal.currentAmount,
-                        goalAmount: goal.goalAmount,
-                        iconName: goal.iconName,
-                        accentColor: Color("primaryBlue")
-                    )
+            let goals = viewModel.goals(for: child)
+            if goals.isEmpty {
+                Text("No piggy banks yet")
+                    .font(FontType.regular.fontType(size: 16))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 24)
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(Array(goals.enumerated()), id: \.element.id) { index, goal in
+                        GoalCard(
+                            title: goal.title,
+                            checkpointsCompleted: goal.checkpointsCompleted,
+                            checkpointsTotal: goal.checkpointsTotal,
+                            status: goal.status,
+                            currentAmount: goal.currentAmount,
+                            goalAmount: goal.goalAmount,
+                            iconName: goal.iconName,
+                            accentColor: Self.goalAccentColor(for: index)
+                        )
+                    }
                 }
             }
         }
         .padding(.horizontal, 20)
         .padding(.top, 24)
+    }
+
+    private static let goalAccentColors: [Color] = [
+        Color("primaryBlue"),
+        Color("primaryGreen"),
+        Color("primaryOrange")
+    ]
+
+    private static func goalAccentColor(for index: Int) -> Color {
+        goalAccentColors[index % goalAccentColors.count]
     }
 }
 

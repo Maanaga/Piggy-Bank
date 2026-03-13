@@ -35,10 +35,11 @@ struct PiggyBankGoal: Identifiable {
         let completed = checkpoints.filter { $0.reachedAt != nil }.count
         let total = checkpoints.count
         let status: GoalStatus = dto.isCompleted ? .completed : .pending
+        let iconName = (dto.iconUrl?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "gift.fill"
         return PiggyBankGoal(
             id: UUID(),
             title: dto.title,
-            iconName: "gift.fill",
+            iconName: iconName,
             goalAmount: dto.targetAmount,
             checkpointsTotal: max(total, 1),
             currentAmount: dto.currentAmount,

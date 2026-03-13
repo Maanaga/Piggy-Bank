@@ -17,26 +17,30 @@ struct ParentSignInResponseDTO: Decodable {
 struct SignInResponse: Codable {
     let children: [ChildDTO]
     let role: Int
+    let parentId: Int?
 
     enum CodingKeys: String, CodingKey {
-        case children, role
+        case children, role, parentId
     }
 
-    init(children: [ChildDTO], role: Int) {
+    init(children: [ChildDTO], role: Int, parentId: Int? = nil) {
         self.children = children
         self.role = role
+        self.parentId = parentId
     }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         children = try c.decode([ChildDTO].self, forKey: .children)
         role = try c.decodeIfPresent(Int.self, forKey: .role) ?? 0
+        parentId = try c.decodeIfPresent(Int.self, forKey: .parentId)
     }
 
     func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(children, forKey: .children)
         try c.encode(role, forKey: .role)
+        try c.encodeIfPresent(parentId, forKey: .parentId)
     }
 }
 
@@ -53,9 +57,9 @@ final class AuthNetworkService {
         let data = try await networkService.postData("api/User", body: request)
 
         if let parentResponse = try? decoder.decode(ParentSignInResponseDTO.self, from: data) {
-            return SignInResponse(children: parentResponse.children, role: parentResponse.role)
+            return SignInResponse(children: parentResponse.children, role: parentResponse.role, parentId: parentResponse.id)
         }
         let child = try decoder.decode(ChildDTO.self, from: data)
-        return SignInResponse(children: [child], role: child.role)
+        return SignInResponse(children: [child], role: child.role, parentId: nil)
     }
 }
