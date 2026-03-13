@@ -8,6 +8,12 @@
 import SwiftUI
 
 struct ChildMainView: View {
+    let goals: [PiggyBankGoal]
+
+    init(goals: [PiggyBankGoal] = []) {
+        self.goals = goals
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -49,9 +55,21 @@ struct ChildMainView: View {
     }
 
     private var totalProgressSection: some View {
-        TotalProgressCard(currentAmount: 220, targetAmount: 330)
+        let totalCurrent = goals.reduce(0) { $0 + $1.currentAmount }
+        let totalTarget = goals.reduce(0) { $0 + $1.goalAmount }
+        return TotalProgressCard(currentAmount: totalCurrent, targetAmount: max(totalTarget, 1))
             .padding(.horizontal, 20)
             .padding(.top, 20)
+    }
+
+    private static let goalAccentColors: [Color] = [
+        Color("primaryBlue"),
+        Color("primaryGreen"),
+        Color("primaryOrange")
+    ]
+
+    private func accentColor(for index: Int) -> Color {
+        Self.goalAccentColors[index % Self.goalAccentColors.count]
     }
 
     private var yourGoalsSection: some View {
@@ -60,27 +78,27 @@ struct ChildMainView: View {
                 .font(FontType.bold.fontType(size: 18))
                 .foregroundStyle(.primary)
 
-            VStack(spacing: 12) {
-                GoalCard(
-                    title: "New Bicycle",
-                    checkpointsCompleted: 4,
-                    checkpointsTotal: 6,
-                    status: .pending,
-                    currentAmount: 175,
-                    goalAmount: 250,
-                    iconName: "bicycle",
-                    accentColor: Color("primaryBlue")
-                )
-                GoalCard(
-                    title: "Art Supplies",
-                    checkpointsCompleted: 2,
-                    checkpointsTotal: 4,
-                    status: .completed,
-                    currentAmount: 45,
-                    goalAmount: 80,
-                    iconName: "paintpalette.fill",
-                    accentColor: Color("primaryGreen")
-                )
+            if goals.isEmpty {
+                Text("No piggy banks yet")
+                    .font(FontType.regular.fontType(size: 16))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 24)
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(Array(goals.enumerated()), id: \.element.id) { index, goal in
+                        GoalCard(
+                            title: goal.title,
+                            checkpointsCompleted: goal.checkpointsCompleted,
+                            checkpointsTotal: goal.checkpointsTotal,
+                            status: goal.status,
+                            currentAmount: goal.currentAmount,
+                            goalAmount: goal.goalAmount,
+                            iconName: goal.iconName,
+                            accentColor: accentColor(for: index)
+                        )
+                    }
+                }
             }
         }
         .padding(.horizontal, 20)
@@ -90,6 +108,17 @@ struct ChildMainView: View {
 
 #Preview {
     NavigationStack {
-        ChildMainView()
+        ChildMainView(goals: [
+            PiggyBankGoal(
+                id: UUID(),
+                title: "Bass Guitar",
+                iconName: "gift.fill",
+                goalAmount: 1000,
+                checkpointsTotal: 2,
+                currentAmount: 450,
+                checkpointsCompleted: 1,
+                status: .pending
+            )
+        ])
     }
 }

@@ -14,12 +14,14 @@ final class MainTabCoordinator: CoordinatorProtocol {
     private weak var appCoordinator: AppCoordinator?
     private let children: [Children]
     private let userRole: Role
+    private let piggyBanks: [PiggyBankGoal]
 
-    init(window: UIWindow, appCoordinator: AppCoordinator, children: [Children], userRole: Role) {
+    init(window: UIWindow, appCoordinator: AppCoordinator, children: [Children], userRole: Role, piggyBanks: [PiggyBankGoal] = []) {
         self.window = window
         self.appCoordinator = appCoordinator
         self.children = children
         self.userRole = userRole
+        self.piggyBanks = piggyBanks
     }
 
     func start() {
@@ -50,7 +52,7 @@ final class MainTabCoordinator: CoordinatorProtocol {
             viewControllers = [childrenNav]
 
         case .children:
-            let bankNav = UINavigationController(rootViewController: makeHostingController(for: ChildMainView()))
+            let bankNav = UINavigationController(rootViewController: makeHostingController(for: ChildMainView(goals: piggyBanks)))
             bankNav.tabBarItem = UITabBarItem(
                 title: "Bank",
                 image: UIImage(systemName: "banknote"),

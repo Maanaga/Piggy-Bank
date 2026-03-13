@@ -1,7 +1,7 @@
 import Foundation
 
 enum AppEnvironment {
-    static var baseURLString: String = "https://translucent-fisher-micrographically.ngrok-free.dev"
+    static var baseURLString: String = "https://translucent-fisher-micrographically.ngrok-free.dev" //serveris url armakvs :(
 
     static var networkService: NetworkService = {
         NetworkService(

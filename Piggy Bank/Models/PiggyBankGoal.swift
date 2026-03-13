@@ -29,4 +29,21 @@ struct PiggyBankGoal: Identifiable {
             status: .pending
         )
     }
+
+    static func from(dto: PiggyBankDTO) -> PiggyBankGoal {
+        let checkpoints = dto.checkpoints ?? []
+        let completed = checkpoints.filter { $0.reachedAt != nil }.count
+        let total = checkpoints.count
+        let status: GoalStatus = dto.isCompleted ? .completed : .pending
+        return PiggyBankGoal(
+            id: UUID(),
+            title: dto.title,
+            iconName: "gift.fill",
+            goalAmount: dto.targetAmount,
+            checkpointsTotal: max(total, 1),
+            currentAmount: dto.currentAmount,
+            checkpointsCompleted: completed,
+            status: status
+        )
+    }
 }
