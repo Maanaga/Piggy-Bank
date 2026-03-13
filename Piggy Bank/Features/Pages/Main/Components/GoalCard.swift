@@ -16,6 +16,29 @@ struct GoalCard: View {
     let goalAmount: Int
     let iconName: String
     let accentColor: Color
+    let checkpoints: [GoalCheckpoint]
+
+    init(
+        title: String,
+        checkpointsCompleted: Int,
+        checkpointsTotal: Int,
+        status: GoalStatus,
+        currentAmount: Int,
+        goalAmount: Int,
+        iconName: String,
+        accentColor: Color,
+        checkpoints: [GoalCheckpoint] = []
+    ) {
+        self.title = title
+        self.checkpointsCompleted = checkpointsCompleted
+        self.checkpointsTotal = checkpointsTotal
+        self.status = status
+        self.currentAmount = currentAmount
+        self.goalAmount = goalAmount
+        self.iconName = iconName
+        self.accentColor = accentColor
+        self.checkpoints = checkpoints
+    }
 
     private var progress: Double {
         guard goalAmount > 0 else { return 0 }
@@ -77,9 +100,9 @@ struct GoalCard: View {
 
             HStack {
                 CheckpointDotsView(
+                    checkpoints: checkpoints,
                     completed: checkpointsCompleted,
                     total: checkpointsTotal,
-                    currentIndex: checkpointsCompleted,
                     accentColor: accentColor
                 )
                 Spacer()
@@ -101,44 +124,79 @@ struct GoalCard: View {
 // MARK: - Chekpoint dots view
 
 struct CheckpointDotsView: View {
+    let checkpoints: [GoalCheckpoint]
     let completed: Int
     let total: Int
-    let currentIndex: Int
     let accentColor: Color
 
     var body: some View {
         HStack(spacing: 6) {
-            ForEach(0..<total, id: \.self) { index in
-                if index < completed {
-                    ZStack {
-                        Circle()
-                            .fill(accentColor)
-                            .frame(width: 24, height: 24)
-                        Image(systemName: "checkmark")
-                            .font(FontType.bold.fontType(size: 10))
-                            .foregroundStyle(.white)
-                    }
-                } else if index == completed {
-                    ZStack {
-                        Circle()
-                            .fill(Color("primaryOrange"))
-                            .frame(width: 24, height: 24)
-                        Image(systemName: "checkmark")
-                            .font(FontType.bold.fontType(size: 10))
-                            .foregroundStyle(.white)
-                    }
-                } else {
-                    Circle()
-                        .stroke(Color(.systemGray5), lineWidth: 2)
-                        .background(Circle().fill(Color(.systemBackground)))
-                        .frame(width: 24, height: 24)
+            if checkpoints.isEmpty {
+                legacyDots
+            } else {
+                ForEach(checkpoints) { checkpoint in
+                    checkpointCircle(for: checkpoint)
                 }
             }
         }
     }
+
+    @ViewBuilder
+    private var legacyDots: some View {
+        ForEach(0..<total, id: \.self) { index in
+            if index < completed {
+                completedCircle
+            } else if index == completed {
+                pendingCircle
+            } else {
+                lockedCircle
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func checkpointCircle(for checkpoint: GoalCheckpoint) -> some View {
+        if checkpoint.isApprovedByParent {
+            completedCircle
+        } else if checkpoint.isPendingApproval {
+            pendingCircle
+        } else {
+            lockedCircle
+        }
+    }
+
+    private var completedCircle: some View {
+        ZStack {
+            Circle()
+                .fill(accentColor)
+                .frame(width: 24, height: 24)
+            Image(systemName: "checkmark")
+                .font(FontType.bold.fontType(size: 10))
+                .foregroundStyle(.white)
+        }
+    }
+
+    private var pendingCircle: some View {
+        ZStack {
+            Circle()
+                .fill(Color("primaryOrange"))
+                .frame(width: 24, height: 24)
+            Image(systemName: "clock")
+                .font(FontType.bold.fontType(size: 10))
+                .foregroundStyle(.white)
+        }
+    }
+
+    private var lockedCircle: some View {
+        Circle()
+            .stroke(Color(.systemGray5), lineWidth: 2)
+            .background(Circle().fill(Color(.systemBackground)))
+            .frame(width: 24, height: 24)
+    }
 }
 
 enum GoalStatus {
+    case active
     case pending
     case completed
 }

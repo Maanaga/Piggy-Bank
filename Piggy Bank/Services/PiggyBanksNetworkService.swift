@@ -25,6 +25,11 @@ struct CreatePiggyBankRequest: Encodable {
     let checkpoints: [CreatePiggyBankCheckpointRequest]
 }
 
+struct RedeemCheckpointRequest: Encodable {
+    let piggyBankId: Int
+    let checkpointId: Int
+}
+
 final class PiggyBanksNetworkService {
     private let networkService: NetworkService
 
@@ -63,5 +68,16 @@ final class PiggyBanksNetworkService {
             as: Int.self
         )
         return response
+    }
+
+    func redeemCheckpoint(piggyBankId: Int, checkpointId: Int) async throws {
+        let request = RedeemCheckpointRequest(
+            piggyBankId: piggyBankId,
+            checkpointId: checkpointId
+        )
+        try await networkService.post(
+            "api/PiggyBanks/checkpoint/redeem",
+            body: request
+        )
     }
 }

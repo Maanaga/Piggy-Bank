@@ -10,8 +10,12 @@ import SwiftUI
 struct ChildInfoView: View {
     @ObservedObject var viewModel: MyChildrenViewModel
 
+    @State private var currentApproval: PendingCheckpointApproval?
+    @State private var showApprovalError = false
+    @State private var approvalErrorMessage = ""
+
     var body: some View {
-        Group {
+        ZStack {
             if let child = viewModel.selectedChild {
                 mainContent(child: child)
             } else {
@@ -35,6 +39,51 @@ struct ChildInfoView: View {
         }
         .sheet(isPresented: $viewModel.showCreateGoalSheet) {
             CreateNewGoalSheet(viewModel: viewModel)
+        }
+        .onAppear {
+            Task {
+                await viewModel.refreshSelectedChildGoalsAndPendingApprovals()
+                await MainActor.run {
+                    currentApproval = viewModel.pendingCheckpointApprovals.first
+                }
+            }
+        }
+        .sheet(item: $currentApproval) { approval in
+            CheckpointApprovalSheetView(
+                approval: approval,
+                isApproving: viewModel.isApprovingCheckpoint,
+                onApprove: {
+                    Task {
+                        await viewModel.approvePendingCheckpoint(approval)
+                        await MainActor.run {
+                            if let error = viewModel.checkpointApprovalError {
+                                currentApproval = nil
+                                approvalErrorMessage = error
+                                showApprovalError = true
+                            } else {
+                                currentApproval = viewModel.pendingCheckpointApprovals.first
+                            }
+                        }
+                    }
+                },
+                onReject: {
+                    viewModel.dismissPendingCheckpoint(approval)
+                    currentApproval = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        currentApproval = viewModel.pendingCheckpointApprovals.first
+                    }
+                },
+                onDismiss: {
+                    currentApproval = nil
+                }
+            )
+        }
+        .alert("Checkpoint Approval Failed", isPresented: $showApprovalError) {
+            Button("OK", role: .cancel) {
+                viewModel.checkpointApprovalError = nil
+            }
+        } message: {
+            Text(approvalErrorMessage)
         }
     }
 
@@ -121,7 +170,8 @@ struct ChildInfoView: View {
                             currentAmount: goal.currentAmount,
                             goalAmount: goal.goalAmount,
                             iconName: goal.iconName,
-                            accentColor: Color("primaryBlue")
+                            accentColor: Color("primaryBlue"),
+                            checkpoints: goal.checkpoints
                         )
                     }
                 }

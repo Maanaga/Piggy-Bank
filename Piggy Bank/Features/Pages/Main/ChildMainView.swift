@@ -56,7 +56,7 @@ struct ChildMainView: View {
             checkpointsTotal: 1,
             currentAmount: 0,
             checkpointsCompleted: 0,
-            status: .pending
+            status: .active
         )
     }
 
@@ -194,7 +194,8 @@ struct ChildMainView: View {
                             currentAmount: goal.currentAmount,
                             goalAmount: goal.goalAmount,
                             iconName: goal.iconName,
-                            accentColor: Color("primaryBlue")
+                            accentColor: Color("primaryBlue"),
+                            checkpoints: goal.checkpoints
                         )
                     }
                 }
@@ -217,7 +218,7 @@ struct ChildMainView: View {
                 checkpointsTotal: 2,
                 currentAmount: 450,
                 checkpointsCompleted: 1,
-                status: .pending
+                status: .active
             )
         ])
     }

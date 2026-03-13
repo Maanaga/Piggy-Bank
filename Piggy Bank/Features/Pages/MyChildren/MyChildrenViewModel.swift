@@ -8,6 +8,18 @@
 import Foundation
 import Combine
 
+struct PendingCheckpointApproval: Identifiable, Equatable {
+    let piggyBankId: Int
+    let checkpointId: Int
+    let level: Int
+    let goalTitle: String
+    let amountSaved: Int
+    let rewardPoints: Int
+    let iconName: String
+
+    var id: String { "\(piggyBankId)-\(checkpointId)" }
+}
+
 final class MyChildrenViewModel: ObservableObject {
     @Published var children: [Children]
     let parentId: Int?
@@ -27,6 +39,9 @@ final class MyChildrenViewModel: ObservableObject {
     @Published var step2Errors: Step2ValidationErrors = Step2ValidationErrors()
     @Published var isCreatingGoal: Bool = false
     @Published var createGoalError: String?
+    @Published private(set) var pendingCheckpointApprovals: [PendingCheckpointApproval] = []
+    @Published var checkpointApprovalError: String?
+    @Published var isApprovingCheckpoint: Bool = false
 
     var onBack: (() -> Void)?
 
@@ -89,6 +104,48 @@ final class MyChildrenViewModel: ObservableObject {
 
     func clearSelectedChild() {
         selectedChild = nil
+        pendingCheckpointApprovals = []
+        checkpointApprovalError = nil
+    }
+
+    func refreshSelectedChildGoalsAndPendingApprovals() async {
+        guard let child = selectedChild, let childId = child.id else { return }
+        do {
+            let info = try await childInfoService.getChildInfo(childId: childId)
+            let piggyBanks = info.piggyBanks ?? []
+            let mappedGoals = piggyBanks.map { PiggyBankGoal.from(dto: $0) }
+            let approvals = pendingApprovals(from: piggyBanks)
+
+            await MainActor.run {
+                goalsByChildName[child.name] = mappedGoals
+                pendingCheckpointApprovals = approvals
+            }
+        } catch {
+            await MainActor.run {
+                checkpointApprovalError = error.localizedDescription
+            }
+        }
+    }
+
+    func approvePendingCheckpoint(_ approval: PendingCheckpointApproval) async {
+        await MainActor.run { isApprovingCheckpoint = true }
+        do {
+            try await piggyBanksService.redeemCheckpoint(
+                piggyBankId: approval.piggyBankId,
+                checkpointId: approval.checkpointId
+            )
+            await refreshSelectedChildGoalsAndPendingApprovals()
+            await MainActor.run { isApprovingCheckpoint = false }
+        } catch {
+            await MainActor.run {
+                isApprovingCheckpoint = false
+                checkpointApprovalError = error.localizedDescription
+            }
+        }
+    }
+
+    func dismissPendingCheckpoint(_ approval: PendingCheckpointApproval) {
+        pendingCheckpointApprovals.removeAll { $0.id == approval.id }
     }
 
     func dismissCreateGoalSheet() {
@@ -233,5 +290,32 @@ final class MyChildrenViewModel: ObservableObject {
     func parseDecimal(_ string: String) -> Decimal? {
         let normalized = string.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")
         return Decimal(string: normalized)
+    }
+
+    private func pendingApprovals(from piggyBanks: [PiggyBankDTO]) -> [PendingCheckpointApproval] {
+        piggyBanks
+            .flatMap { piggyBank in
+                let iconName = (piggyBank.iconUrl?.trimmingCharacters(in: .whitespacesAndNewlines))
+                    .flatMap { $0.isEmpty ? nil : $0 } ?? "gift.fill"
+                return (piggyBank.checkpoints ?? [])
+                    .filter { ($0.reachedAt != nil || piggyBank.currentAmount >= $0.targetAmount) && !$0.isApprovedByParent }
+                    .map {
+                        PendingCheckpointApproval(
+                            piggyBankId: piggyBank.piggyBankId,
+                            checkpointId: $0.checkpointId,
+                            level: $0.level,
+                            goalTitle: piggyBank.title,
+                            amountSaved: $0.targetAmount,
+                            rewardPoints: $0.rewardPoints,
+                            iconName: iconName
+                        )
+                    }
+            }
+            .sorted { lhs, rhs in
+                if lhs.level == rhs.level {
+                    return lhs.piggyBankId < rhs.piggyBankId
+                }
+                return lhs.level < rhs.level
+            }
     }
 }
