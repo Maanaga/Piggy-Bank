@@ -17,7 +17,6 @@ struct ChildMainView: View {
     let goals: [PiggyBankGoal]
     let childId: Int?
     @State private var addMoneyContext: AddMoneySheetContext?
-    @State private var isLoadingChildInfo = false
     private let childInfoService = ChildInfoNetworkService()
 
     init(goals: [PiggyBankGoal] = [], childId: Int? = nil) {
@@ -77,9 +76,7 @@ struct ChildMainView: View {
             Button {
                 guard let goal = addMoneyGoal else { return }
                 if let cid = childId {
-                    isLoadingChildInfo = true
                     Task {
-                        defer { isLoadingChildInfo = false }
                         do {
                             let info = try await childInfoService.getChildInfo(childId: cid)
                             await MainActor.run {
@@ -95,22 +92,13 @@ struct ChildMainView: View {
                     addMoneyContext = AddMoneySheetContext(goal: goal, sources: Self.sources(from: nil))
                 }
             } label: {
-                ZStack {
-                    if isLoadingChildInfo {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .frame(width: 56, height: 56)
-                    } else {
-                        Image(systemName: "plus")
-                            .font(FontType.medium.fontType(size: 24))
-                            .foregroundStyle(.white)
-                    }
-                }
-                .frame(width: 56, height: 56)
-                .background(Color("primaryBlue"))
-                .clipShape(Circle())
+                Image(systemName: "plus")
+                    .font(FontType.medium.fontType(size: 24))
+                    .foregroundStyle(.white)
+                    .frame(width: 56, height: 56)
+                    .background(Color("primaryBlue"))
+                    .clipShape(Circle())
             }
-            .disabled(isLoadingChildInfo)
             .padding(.trailing, 20)
             .padding(.bottom, 40)
         }
