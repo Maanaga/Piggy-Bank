@@ -7,12 +7,22 @@
 
 import SwiftUI
 
+private struct AddMoneySheetContext: Identifiable {
+    let id = UUID()
+    let goal: PiggyBankGoal
+    let sources: [PaymentSource]
+}
+
 struct ChildMainView: View {
     let goals: [PiggyBankGoal]
-    @State private var showAddMoney = false
+    let childId: Int?
+    @State private var addMoneyContext: AddMoneySheetContext?
+    @State private var isLoadingChildInfo = false
+    private let childInfoService = ChildInfoNetworkService()
 
-    init(goals: [PiggyBankGoal] = []) {
+    init(goals: [PiggyBankGoal] = [], childId: Int? = nil) {
         self.goals = goals
+        self.childId = childId
     }
 
     private var addMoneyGoal: PiggyBankGoal? {
@@ -30,6 +40,15 @@ struct ChildMainView: View {
             checkpointsCompleted: 0,
             status: .pending
         )
+    }
+
+    private static func sources(from childInfo: ChildInfoResponse?) -> [PaymentSource] {
+        guard let info = childInfo else {
+            return [PaymentSource(title: "My TBC Card", lastFour: "****", balance: 0)]
+        }
+        let ibanDigits = info.iban.replacingOccurrences(of: " ", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let lastFour = ibanDigits.count >= 4 ? String(ibanDigits.suffix(4)) : ibanDigits
+        return [PaymentSource(title: "My TBC Card", lastFour: lastFour, balance: Decimal(info.balance))]
     }
 
     var body: some View {
@@ -56,27 +75,53 @@ struct ChildMainView: View {
             .navigationBarHidden(true)
 
             Button {
-                showAddMoney = true
+                guard let goal = addMoneyGoal else { return }
+                if let cid = childId {
+                    isLoadingChildInfo = true
+                    Task {
+                        defer { isLoadingChildInfo = false }
+                        do {
+                            let info = try await childInfoService.getChildInfo(childId: cid)
+                            await MainActor.run {
+                                addMoneyContext = AddMoneySheetContext(goal: goal, sources: Self.sources(from: info))
+                            }
+                        } catch {
+                            await MainActor.run {
+                                addMoneyContext = AddMoneySheetContext(goal: goal, sources: Self.sources(from: nil))
+                            }
+                        }
+                    }
+                } else {
+                    addMoneyContext = AddMoneySheetContext(goal: goal, sources: Self.sources(from: nil))
+                }
             } label: {
-                Image(systemName: "plus")
-                    .font(FontType.medium.fontType(size: 24))
-                    .foregroundStyle(.white)
-                    .frame(width: 56, height: 56)
-                    .background(Color("primaryBlue"))
-                    .clipShape(Circle())
+                ZStack {
+                    if isLoadingChildInfo {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .frame(width: 56, height: 56)
+                    } else {
+                        Image(systemName: "plus")
+                            .font(FontType.medium.fontType(size: 24))
+                            .foregroundStyle(.white)
+                    }
+                }
+                .frame(width: 56, height: 56)
+                .background(Color("primaryBlue"))
+                .clipShape(Circle())
             }
+            .disabled(isLoadingChildInfo)
             .padding(.trailing, 20)
             .padding(.bottom, 40)
         }
-        .sheet(isPresented: $showAddMoney) {
-            if let goal = addMoneyGoal {
-                NavigationStack {
-                    AddMoneyView(
-                        goal: goal,
-                        onBack: { showAddMoney = false },
-                        onContinue: { _ in showAddMoney = false }
-                    )
-                }
+        .sheet(item: $addMoneyContext) { context in
+            NavigationStack {
+                AddMoneyView(
+                    goal: context.goal,
+                    sources: context.sources,
+                    onBack: { addMoneyContext = nil },
+                    onContinue: { _ in addMoneyContext = nil }
+                )
             }
         }
     }

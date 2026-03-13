@@ -56,7 +56,8 @@ final class MainTabCoordinator: CoordinatorProtocol {
             viewControllers = [childrenNav]
 
         case .children:
-            let bankNav = UINavigationController(rootViewController: makeHostingController(for: ChildMainView(goals: piggyBanks)))
+            let childId = children.first?.id
+            let bankNav = UINavigationController(rootViewController: makeHostingController(for: ChildMainView(goals: piggyBanks, childId: childId)))
             bankNav.tabBarItem = UITabBarItem(
                 title: "Bank",
                 image: UIImage(systemName: "banknote"),
