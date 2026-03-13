@@ -1,11 +1,9 @@
 import SwiftUI
 
 struct SignInView: View {
-    var onSignIn: () -> Void
-    
-    @State private var username: String = ""
-    @State private var password: String = ""
-    
+    @StateObject private var viewModel = SignInViewModel()
+    var onSignIn: ([Children]) -> Void
+
     var body: some View {
         ZStack {
             Color.primaryBlue
@@ -20,6 +18,7 @@ struct SignInView: View {
                 .padding(.bottom, 40)
             }
         }
+        .onAppear { viewModel.onSignInSuccess = onSignIn }
     }
     
     private var cardContent: some View {
@@ -27,6 +26,11 @@ struct SignInView: View {
             headerSection
             usernameField
             passwordField
+            if let error = viewModel.errorMessage {
+                Text(error)
+                    .font(FontType.regular.fontType(size: 14))
+                    .foregroundStyle(.red)
+            }
             signInButton
         }
         .padding(28)
@@ -57,7 +61,7 @@ struct SignInView: View {
                 Image(systemName: "person")
                     .font(FontType.medium.fontType(size: 16))
                     .foregroundStyle(.secondary)
-                TextField("Enter your username", text: $username)
+                TextField("Enter your username", text: $viewModel.username)
                     .font(FontType.regular.fontType(size: 16))
             }
             .padding(12)
@@ -79,7 +83,7 @@ struct SignInView: View {
                 Image(systemName: "lock")
                     .font(FontType.medium.fontType(size: 16))
                     .foregroundStyle(.secondary)
-                SecureField("Enter your password", text: $password)
+                SecureField("Enter your password", text: $viewModel.password)
                     .font(FontType.regular.fontType(size: 16))
             }
             .padding(12)
@@ -94,23 +98,29 @@ struct SignInView: View {
     
     private var signInButton: some View {
         Button {
-            onSignIn()
+            viewModel.signIn()
         } label: {
-            Text("Sign In")
-                .font(FontType.bold.fontType(size: 18))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    Color.primaryBlue
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+            HStack(spacing: 8) {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                } else {
+                    Text("Sign In")
+                        .font(FontType.bold.fontType(size: 18))
+                }
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(Color.primaryBlue)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
+        .disabled(viewModel.isLoading)
         .padding(.top, 8)
     }
 }
 
 #Preview {
-    SignInView(onSignIn: {})
+    SignInView(onSignIn: { _ in })
 }

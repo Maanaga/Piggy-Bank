@@ -12,10 +12,12 @@ final class MainTabCoordinator: CoordinatorProtocol {
     var childCoordinators: [CoordinatorProtocol] = []
     private let window: UIWindow
     private weak var appCoordinator: AppCoordinator?
+    private let children: [Children]
 
-    init(window: UIWindow, appCoordinator: AppCoordinator) {
+    init(window: UIWindow, appCoordinator: AppCoordinator, children: [Children]) {
         self.window = window
         self.appCoordinator = appCoordinator
+        self.children = children
     }
 
     func start() {
@@ -39,10 +41,6 @@ final class MainTabCoordinator: CoordinatorProtocol {
 
         let childrenNav = UINavigationController()
         appCoordinator?.configureChildrenNavigation(childrenNav)
-        let children: [Children] = [
-            Children(name: "Sophie Anderson", role: .children, avatarEmoji: "👧", balance: 125.50, iban: "GE00XXXX4532"),
-            Children(name: "Max Anderson", role: .children, avatarEmoji: "👦", balance: 85.00, iban: "GE00XXXX7821")
-        ]
         let childrenViewModel = MyChildrenViewModel(children: children)
         childrenViewModel.onChildSelected = { [weak self] child in
             childrenViewModel.selectChild(child)
