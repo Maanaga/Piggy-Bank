@@ -11,7 +11,7 @@ import Combine
 struct PaymentSource: Identifiable {
     let id = UUID()
     let title: String
-    let lastFour: String
+    let iban: String
     let balance: Decimal
 }
 
@@ -54,7 +54,7 @@ final class AddMoneyViewModel: ObservableObject {
     ) {
         self.goals = goals.isEmpty ? [PiggyBankGoal(id: UUID(), piggyBankId: 0, title: "Goal", iconName: "gift.fill", goalAmount: 0, checkpointsTotal: 1, currentAmount: 0, checkpointsCompleted: 0, status: .active)] : goals
         self.selectedGoal = self.goals[0]
-        self.sources = sources.isEmpty ? [PaymentSource(title: "My TBC Card", lastFour: "4532", balance: 125.50)] : sources
+        self.sources = sources.isEmpty ? [PaymentSource(title: "My TBC Card", iban: "GE45TB7964511000000001", balance: 125.50)] : sources
         self.childId = childId
         self.iban = iban
         self.transferService = transferService

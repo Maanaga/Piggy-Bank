@@ -105,10 +105,11 @@ struct ChildDTO: Codable {
     let surname: String
     let balance: Int
     let role: Int
+    let iban: String
     let piggyBanks: [PiggyBankDTO]?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, surname, balance, role, piggyBanks
+        case id, name, surname, balance, role, iban, piggyBanks
     }
 
     init(from decoder: Decoder) throws {
@@ -118,6 +119,7 @@ struct ChildDTO: Codable {
         surname = try c.decodeIfPresent(String.self, forKey: .surname) ?? ""
         balance = try c.decode(Int.self, forKey: .balance)
         role = try c.decode(Int.self, forKey: .role)
+        iban = try c.decodeIfPresent(String.self, forKey: .iban) ?? ""
         piggyBanks = try c.decodeIfPresent([PiggyBankDTO].self, forKey: .piggyBanks)
     }
 
@@ -128,6 +130,7 @@ struct ChildDTO: Codable {
         try c.encode(surname, forKey: .surname)
         try c.encode(balance, forKey: .balance)
         try c.encode(role, forKey: .role)
+        try c.encode(iban, forKey: .iban)
         try c.encodeIfPresent(piggyBanks, forKey: .piggyBanks)
     }
 }

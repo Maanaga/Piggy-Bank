@@ -62,11 +62,9 @@ struct ChildMainView: View {
 
     private static func sources(from childInfo: ChildInfoResponse?) -> [PaymentSource] {
         guard let info = childInfo else {
-            return [PaymentSource(title: "My TBC Card", lastFour: "****", balance: 0)]
+            return [PaymentSource(title: "My TBC Card", iban: "", balance: 0)]
         }
-        let ibanDigits = info.iban.replacingOccurrences(of: " ", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-        let lastFour = ibanDigits.count >= 4 ? String(ibanDigits.suffix(4)) : ibanDigits
-        return [PaymentSource(title: "My TBC Card", lastFour: lastFour, balance: Decimal(info.balance))]
+        return [PaymentSource(title: "My TBC Card", iban: info.iban, balance: Decimal(info.balance))]
     }
 
     var body: some View {

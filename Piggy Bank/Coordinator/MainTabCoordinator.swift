@@ -17,9 +17,10 @@ final class MainTabCoordinator: CoordinatorProtocol {
     private let piggyBanks: [PiggyBankGoal]
     private let parentId: Int?
     private let parentIBAN: String?
+    private let parentProfile: ParentProfile?
     private let initialGoalsByChildName: [String: [PiggyBankGoal]]
 
-    init(window: UIWindow, appCoordinator: AppCoordinator, children: [Children], userRole: Role, piggyBanks: [PiggyBankGoal] = [], parentId: Int? = nil, parentIBAN: String? = nil, initialGoalsByChildName: [String: [PiggyBankGoal]] = [:]) {
+    init(window: UIWindow, appCoordinator: AppCoordinator, children: [Children], userRole: Role, piggyBanks: [PiggyBankGoal] = [], parentId: Int? = nil, parentIBAN: String? = nil, parentProfile: ParentProfile? = nil, initialGoalsByChildName: [String: [PiggyBankGoal]] = [:]) {
         self.window = window
         self.appCoordinator = appCoordinator
         self.children = children
@@ -27,6 +28,7 @@ final class MainTabCoordinator: CoordinatorProtocol {
         self.piggyBanks = piggyBanks
         self.parentId = parentId
         self.parentIBAN = parentIBAN
+        self.parentProfile = parentProfile
         self.initialGoalsByChildName = initialGoalsByChildName
     }
 
@@ -55,7 +57,17 @@ final class MainTabCoordinator: CoordinatorProtocol {
                 selectedImage: UIImage(systemName: "person.2.fill")
             )
             childrenNav.tabBarItem.tag = 0
-            viewControllers = [childrenNav]
+            viewControllers.append(childrenNav)
+
+            let profileView = ParentProfileView(profile: parentProfile)
+            let profileNav = UINavigationController(rootViewController: makeHostingController(for: profileView))
+            profileNav.tabBarItem = UITabBarItem(
+                title: "Profile",
+                image: UIImage(systemName: "person.circle"),
+                selectedImage: UIImage(systemName: "person.circle.fill")
+            )
+            profileNav.tabBarItem.tag = 1
+            viewControllers.append(profileNav)
 
         case .children:
             let childId = children.first?.id

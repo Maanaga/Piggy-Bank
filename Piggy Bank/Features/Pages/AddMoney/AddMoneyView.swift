@@ -21,7 +21,7 @@ struct AddMoneyView: View {
 
     private var fromText: String {
         guard let source = viewModel.sources.first else { return "" }
-        return "\(source.title) **** \(source.lastFour)"
+        return "\(source.title) \(source.iban)"
     }
 
     var body: some View {

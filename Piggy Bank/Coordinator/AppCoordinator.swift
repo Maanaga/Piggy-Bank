@@ -33,7 +33,7 @@ final class AppCoordinator: CoordinatorProtocol {
             let displayName = dto.surname.isEmpty ? dto.name : "\(dto.name) \(dto.surname)"
             result[displayName] = (dto.piggyBanks ?? []).map { PiggyBankGoal.from(dto: $0) }
         }
-        let mainTabCoordinator = MainTabCoordinator(window: window, appCoordinator: self, children: children, userRole: Role.from(apiValue: response.role), piggyBanks: piggyBanks, parentId: response.parentId, parentIBAN: response.parentIBAN, initialGoalsByChildName: initialGoalsByChildName)
+        let mainTabCoordinator = MainTabCoordinator(window: window, appCoordinator: self, children: children, userRole: Role.from(apiValue: response.role), piggyBanks: piggyBanks, parentId: response.parentId, parentIBAN: response.parentIBAN, parentProfile: response.parentProfile, initialGoalsByChildName: initialGoalsByChildName)
         addChild(mainTabCoordinator)
         mainTabCoordinator.start()
     }

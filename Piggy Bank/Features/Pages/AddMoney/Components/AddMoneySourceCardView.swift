@@ -33,9 +33,10 @@ struct AddMoneySourceCardView: View {
                 Text(source.title)
                     .font(FontType.bold.fontType(size: 16))
                     .foregroundStyle(.primary)
-                Text("**** \(source.lastFour)")
-                    .font(FontType.regular.fontType(size: 14))
+                Text(source.iban)
+                    .font(FontType.regular.fontType(size: 12))
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
 
             Spacer()

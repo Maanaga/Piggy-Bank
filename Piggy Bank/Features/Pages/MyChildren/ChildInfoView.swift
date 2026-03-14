@@ -127,7 +127,7 @@ struct ChildInfoView: View {
         BankCardView(
             cardTitle: "TBC Card",
             balance: child.balance,
-            cardLastFour: String(child.iban.suffix(4))
+            iban: child.iban
         )
         .padding(.horizontal, 20)
         .padding(.top, 20)

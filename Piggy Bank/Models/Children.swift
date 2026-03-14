@@ -32,7 +32,7 @@ struct Children {
             role: Role.from(apiValue: dto.role),
             avatarEmoji: dto.role == 0 ? "👤" : "👧",
             balance: Decimal(dto.balance),
-            iban: ""
+            iban: dto.iban
         )
     }
 }

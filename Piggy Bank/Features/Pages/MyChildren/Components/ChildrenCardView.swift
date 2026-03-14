@@ -11,7 +11,7 @@ struct ChildrenCardView: View {
     let name: String
     let avatarEmoji: String
     let balance: Decimal
-    let cardLastFour: String
+    let iban: String
     var notificationCount: Int? = nil
 
     var body: some View {
@@ -57,7 +57,7 @@ struct ChildrenCardView: View {
                         .font(FontType.bold.fontType(size: 18))
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Text("**** \(cardLastFour)")
+                    Text(iban)
                         .font(FontType.regular.fontType(size: 14))
                         .foregroundStyle(.secondary)
                 }

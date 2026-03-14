@@ -15,21 +15,29 @@ struct ParentSignInResponseDTO: Decodable {
     let iban: String?
 }
 
+struct ParentProfile {
+    let name: String
+    let balance: Int
+    let iban: String
+}
+
 struct SignInResponse: Codable {
     let children: [ChildDTO]
     let role: Int
     let parentId: Int?
     let parentIBAN: String?
+    let parentProfile: ParentProfile?
 
     enum CodingKeys: String, CodingKey {
         case children, role, parentId, parentIBAN
     }
 
-    init(children: [ChildDTO], role: Int, parentId: Int? = nil, parentIBAN: String? = nil) {
+    init(children: [ChildDTO], role: Int, parentId: Int? = nil, parentIBAN: String? = nil, parentProfile: ParentProfile? = nil) {
         self.children = children
         self.role = role
         self.parentId = parentId
         self.parentIBAN = parentIBAN
+        self.parentProfile = parentProfile
     }
 
     init(from decoder: Decoder) throws {
@@ -38,6 +46,7 @@ struct SignInResponse: Codable {
         role = try c.decodeIfPresent(Int.self, forKey: .role) ?? 0
         parentId = try c.decodeIfPresent(Int.self, forKey: .parentId)
         parentIBAN = try c.decodeIfPresent(String.self, forKey: .parentIBAN)
+        parentProfile = nil
     }
 
     func encode(to encoder: Encoder) throws {
@@ -62,7 +71,13 @@ final class AuthNetworkService {
         let data = try await networkService.postData("api/User", body: request)
 
         if let parentResponse = try? decoder.decode(ParentSignInResponseDTO.self, from: data) {
-            return SignInResponse(children: parentResponse.children, role: parentResponse.role, parentId: parentResponse.id, parentIBAN: parentResponse.iban)
+            let displayName = parentResponse.surname.isEmpty ? parentResponse.name : "\(parentResponse.name) \(parentResponse.surname)"
+            let profile = ParentProfile(
+                name: displayName,
+                balance: parentResponse.balance,
+                iban: parentResponse.iban ?? ""
+            )
+            return SignInResponse(children: parentResponse.children, role: parentResponse.role, parentId: parentResponse.id, parentIBAN: parentResponse.iban, parentProfile: profile)
         }
         let child = try decoder.decode(ChildDTO.self, from: data)
         return SignInResponse(children: [child], role: child.role, parentId: nil)

@@ -71,7 +71,7 @@ struct MyChildrenView: View {
                     name: child.name,
                     avatarEmoji: child.avatarEmoji,
                     balance: child.balance,
-                    cardLastFour: String(child.iban.suffix(4)),
+                    iban: child.iban,
                     notificationCount: index == 0 ? 1 : nil
                 )
                 .onTapGesture {

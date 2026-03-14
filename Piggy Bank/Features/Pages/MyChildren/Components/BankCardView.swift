@@ -10,7 +10,7 @@ import SwiftUI
 struct BankCardView: View {
     let cardTitle: String
     let balance: Decimal
-    let cardLastFour: String
+    let iban: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -37,7 +37,7 @@ struct BankCardView: View {
                 }
             }
 
-            Text("**** \(cardLastFour)")
+            Text(iban)
                 .font(FontType.regular.fontType(size: 14))
                 .foregroundStyle(.white.opacity(0.9))
         }
@@ -69,7 +69,7 @@ struct BankCardView: View {
     BankCardView(
         cardTitle: "TBC Card",
         balance: 125.50,
-        cardLastFour: "4532"
+        iban: "GE45TB7964511000000001"
     )
     .padding()
 }
