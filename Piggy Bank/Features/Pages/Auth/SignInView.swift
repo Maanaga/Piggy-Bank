@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SignInView: View {
     @StateObject private var viewModel = SignInViewModel()
+    @State private var isPasswordVisible = false
     var onSignIn: (SignInResponse) -> Void
 
     var body: some View {
@@ -83,8 +84,21 @@ struct SignInView: View {
                 Image(systemName: "lock")
                     .font(FontType.medium.fontType(size: 16))
                     .foregroundStyle(.secondary)
-                SecureField("Enter your password", text: $viewModel.password)
-                    .font(FontType.regular.fontType(size: 16))
+                if isPasswordVisible {
+                    TextField("Enter your password", text: $viewModel.password)
+                        .font(FontType.regular.fontType(size: 16))
+                } else {
+                    SecureField("Enter your password", text: $viewModel.password)
+                        .font(FontType.regular.fontType(size: 16))
+                }
+                Button {
+                    isPasswordVisible.toggle()
+                } label: {
+                    Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                        .font(FontType.medium.fontType(size: 16))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
             }
             .padding(12)
             .background(Color(.systemBackground))
