@@ -20,6 +20,8 @@ struct AddMoneyAmountSectionView: View {
                 .font(FontType.bold.fontType(size: 36))
                 .foregroundStyle(Color("primaryBlue"))
 
+            sliderSection
+
             HStack(spacing: 12) {
                 quickAmountButton(5)
                 quickAmountButton(10)
@@ -37,6 +39,31 @@ struct AddMoneyAmountSectionView: View {
                     .padding(12)
                     .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+        }
+    }
+
+    private var sliderSection: some View {
+        let maxAmount = Double(viewModel.remainingAmount)
+        let percentage = maxAmount > 0 ? viewModel.sliderValue / maxAmount * 100 : 0
+
+        return VStack(spacing: 8) {
+            AmountSlider(value: $viewModel.sliderValue, range: 0...max(maxAmount, 1), isActive: viewModel.isSliderMode) {
+                viewModel.activateSlider()
+            }
+
+            HStack {
+                Text("0₾")
+                    .font(FontType.regular.fontType(size: 12))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("\(Int(percentage))%")
+                    .font(FontType.medium.fontType(size: 12))
+                    .foregroundStyle(Color("primaryBlue"))
+                Spacer()
+                Text("\(viewModel.remainingAmount)₾")
+                    .font(FontType.regular.fontType(size: 12))
+                    .foregroundStyle(.secondary)
             }
         }
     }

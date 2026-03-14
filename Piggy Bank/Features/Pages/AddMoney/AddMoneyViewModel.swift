@@ -25,11 +25,20 @@ final class AddMoneyViewModel: ObservableObject {
     @Published var selectedGoal: PiggyBankGoal
     @Published var selectedAmount: Int = 0
     @Published var isCustomMode: Bool = false
+    @Published var isSliderMode: Bool = false
+    @Published var sliderValue: Double = 0
     @Published var customAmountText: String = ""
     @Published var isTransferring = false
     @Published var transferError: String?
 
+    var remainingAmount: Int {
+        max(selectedGoal.goalAmount - selectedGoal.currentAmount, 0)
+    }
+
     var displayAmount: Int {
+        if isSliderMode {
+            return Int(sliderValue)
+        }
         if isCustomMode {
             return Int(customAmountText.filter { $0.isNumber }) ?? 0
         }
@@ -92,12 +101,21 @@ final class AddMoneyViewModel: ObservableObject {
 
     func selectQuickAmount(_ amount: Int) {
         isCustomMode = false
+        isSliderMode = false
         customAmountText = ""
         selectedAmount = amount
     }
 
     func selectCustom() {
         isCustomMode = true
+        isSliderMode = false
+        selectedAmount = 0
+        customAmountText = ""
+    }
+
+    func activateSlider() {
+        isSliderMode = true
+        isCustomMode = false
         selectedAmount = 0
         customAmountText = ""
     }
