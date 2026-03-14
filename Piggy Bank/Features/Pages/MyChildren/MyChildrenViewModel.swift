@@ -15,7 +15,10 @@ struct PendingCheckpointApproval: Identifiable, Equatable {
     let goalTitle: String
     let amountSaved: Int
     let rewardPoints: Int
+    let prizeAmount: Int
     let iconName: String
+    let childId: Int
+    let childIBAN: String
 
     var id: String { "\(piggyBankId)-\(checkpointId)" }
 }
@@ -23,6 +26,7 @@ struct PendingCheckpointApproval: Identifiable, Equatable {
 final class MyChildrenViewModel: ObservableObject {
     @Published var children: [Children]
     let parentId: Int?
+    let parentIBAN: String?
     var onChildSelected: ((Children) -> Void)?
 
     @Published private(set) var selectedChild: Children?
@@ -47,6 +51,7 @@ final class MyChildrenViewModel: ObservableObject {
 
     private let piggyBanksService: PiggyBanksNetworkService
     private let childInfoService: ChildInfoNetworkService
+    private let transferService: ChildTransferNetworkService
 
     static let goalIconSfSymbols: [String] = [
         "target", "bicycle", "gamecontroller.fill", "airplane", "iphone",
@@ -58,14 +63,18 @@ final class MyChildrenViewModel: ObservableObject {
     init(
         children: [Children],
         parentId: Int? = nil,
+        parentIBAN: String? = nil,
         initialGoalsByChildName: [String: [PiggyBankGoal]] = [:],
         piggyBanksService: PiggyBanksNetworkService = PiggyBanksNetworkService(),
-        childInfoService: ChildInfoNetworkService = ChildInfoNetworkService()
+        childInfoService: ChildInfoNetworkService = ChildInfoNetworkService(),
+        transferService: ChildTransferNetworkService = ChildTransferNetworkService()
     ) {
         self.children = children
         self.parentId = parentId
+        self.parentIBAN = parentIBAN
         self.piggyBanksService = piggyBanksService
         self.childInfoService = childInfoService
+        self.transferService = transferService
         self.checkpoints = [CheckpointRow(amount: "", parentContribution: "")]
         self.goalsByChildName = initialGoalsByChildName
     }
@@ -114,7 +123,7 @@ final class MyChildrenViewModel: ObservableObject {
             let info = try await childInfoService.getChildInfo(childId: childId)
             let piggyBanks = info.piggyBanks ?? []
             let mappedGoals = piggyBanks.map { PiggyBankGoal.from(dto: $0) }
-            let approvals = pendingApprovals(from: piggyBanks)
+            let approvals = pendingApprovals(from: piggyBanks, childId: childId, childIBAN: info.iban)
 
             await MainActor.run {
                 goalsByChildName[child.name] = mappedGoals
@@ -128,13 +137,25 @@ final class MyChildrenViewModel: ObservableObject {
     }
 
     func approvePendingCheckpoint(_ approval: PendingCheckpointApproval) async {
+        guard let pid = parentId else {
+            await MainActor.run { checkpointApprovalError = "Parent ID missing." }
+            return
+        }
         await MainActor.run { isApprovingCheckpoint = true }
         do {
+            try await transferService.parentToChildTransfer(
+                parentId: pid,
+                parentIBAN: parentIBAN ?? "GE00MOCK00000000000000",
+                childId: approval.childId,
+                childIBAN: approval.childIBAN,
+                amount: Double(approval.amountSaved)
+            )
             try await piggyBanksService.redeemCheckpoint(
                 piggyBankId: approval.piggyBankId,
                 checkpointId: approval.checkpointId
             )
             await refreshSelectedChildGoalsAndPendingApprovals()
+            await refreshChildrenBalances()
             await MainActor.run { isApprovingCheckpoint = false }
         } catch {
             await MainActor.run {
@@ -292,7 +313,7 @@ final class MyChildrenViewModel: ObservableObject {
         return Decimal(string: normalized)
     }
 
-    private func pendingApprovals(from piggyBanks: [PiggyBankDTO]) -> [PendingCheckpointApproval] {
+    private func pendingApprovals(from piggyBanks: [PiggyBankDTO], childId: Int, childIBAN: String) -> [PendingCheckpointApproval] {
         piggyBanks
             .flatMap { piggyBank in
                 let iconName = (piggyBank.iconUrl?.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -307,7 +328,10 @@ final class MyChildrenViewModel: ObservableObject {
                             goalTitle: piggyBank.title,
                             amountSaved: $0.targetAmount,
                             rewardPoints: $0.rewardPoints,
-                            iconName: iconName
+                            prizeAmount: $0.prizeAmount,
+                            iconName: iconName,
+                            childId: childId,
+                            childIBAN: childIBAN
                         )
                     }
             }

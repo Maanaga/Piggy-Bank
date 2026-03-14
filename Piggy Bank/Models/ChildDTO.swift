@@ -78,7 +78,7 @@ struct CheckpointDTO: Codable {
         piggyBankId = try c.decode(Int.self, forKey: .piggyBankId)
         level = try c.decode(Int.self, forKey: .level)
         targetAmount = try c.decode(Int.self, forKey: .targetAmount)
-        prizeAmount = try c.decode(Int.self, forKey: .prizeAmount)
+        prizeAmount = try c.decodeIfPresent(Int.self, forKey: .prizeAmount) ?? 0
         rewardPoints = try c.decode(Int.self, forKey: .rewardPoints)
         isApprovedByParent = try c.decode(Bool.self, forKey: .isApprovedByParent)
         rewardGiven = try c.decode(Bool.self, forKey: .rewardGiven)

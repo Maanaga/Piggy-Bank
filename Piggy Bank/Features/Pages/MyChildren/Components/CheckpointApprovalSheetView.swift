@@ -54,6 +54,8 @@ struct CheckpointApprovalSheetView: View {
             Divider().padding(.vertical, 12)
             detailRow(label: "Amount Saved", value: "\(approval.amountSaved) \u{20BE}")
             Divider().padding(.vertical, 12)
+            detailRow(label: "Your Contribution", value: "\(approval.prizeAmount) \u{20BE}")
+            Divider().padding(.vertical, 12)
             detailRow(label: "Reward", value: "\(approval.rewardPoints) pts")
         }
         .padding(16)
@@ -128,7 +130,10 @@ struct CheckpointApprovalSheetView: View {
                     goalTitle: "Playstation",
                     amountSaved: 150,
                     rewardPoints: 150,
-                    iconName: "gift.fill"
+                    prizeAmount: 50,
+                    iconName: "gift.fill",
+                    childId: 1,
+                    childIBAN: "GE00XXXX1234"
                 ),
                 isApproving: false,
                 onApprove: {},
