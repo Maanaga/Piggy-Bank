@@ -59,7 +59,7 @@ final class MainTabCoordinator: CoordinatorProtocol {
             childrenNav.tabBarItem.tag = 0
             viewControllers.append(childrenNav)
 
-            let profileView = ParentProfileView(profile: parentProfile)
+            let profileView = ParentProfileView(profile: parentProfile, parentId: parentId)
             let profileNav = UINavigationController(rootViewController: makeHostingController(for: profileView))
             profileNav.tabBarItem = UITabBarItem(
                 title: "Profile",

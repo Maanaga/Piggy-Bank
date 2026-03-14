@@ -1,7 +1,14 @@
 import SwiftUI
 
 struct ParentProfileView: View {
-    let profile: ParentProfile?
+    @State private var profile: ParentProfile?
+    private let parentId: Int?
+    private let childInfoService = ChildInfoNetworkService()
+
+    init(profile: ParentProfile?, parentId: Int? = nil) {
+        _profile = State(initialValue: profile)
+        self.parentId = parentId
+    }
 
     var body: some View {
         ScrollView {
@@ -11,8 +18,20 @@ struct ParentProfileView: View {
             }
             .padding(.bottom, 80)
         }
+        .refreshable { await refreshProfile() }
         .background(Color(.systemBackground))
         .navigationBarHidden(true)
+    }
+
+    private func refreshProfile() async {
+        guard let parentId else { return }
+        do {
+            let info = try await childInfoService.getChildInfo(childId: parentId)
+            let displayName = info.surname.isEmpty ? info.name : "\(info.name) \(info.surname)"
+            await MainActor.run {
+                profile = ParentProfile(name: displayName, balance: info.balance, iban: info.iban)
+            }
+        } catch {}
     }
 
     private var headerSection: some View {
@@ -56,6 +75,7 @@ struct ParentProfileView: View {
 
 #Preview {
     ParentProfileView(
-        profile: ParentProfile(name: "Simon Petrikov", balance: 4700, iban: "GE45TB7964511000000001")
+        profile: ParentProfile(name: "Simon Petrikov", balance: 4700, iban: "GE45TB7964511000000001"),
+        parentId: 1
     )
 }
