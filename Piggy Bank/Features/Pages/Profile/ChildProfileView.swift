@@ -1,15 +1,19 @@
 import SwiftUI
 
-struct ParentProfileView: View {
-    @State private var profile: ParentProfile?
+struct ChildProfileView: View {
+    @State private var name: String
+    @State private var balance: Decimal
+    @State private var iban: String
     @State private var showLogoutConfirmation = false
-    private let parentId: Int?
+    private let childId: Int?
     private let onLogout: (() -> Void)?
     private let childInfoService = ChildInfoNetworkService()
 
-    init(profile: ParentProfile?, parentId: Int? = nil, onLogout: (() -> Void)? = nil) {
-        _profile = State(initialValue: profile)
-        self.parentId = parentId
+    init(child: Children, onLogout: (() -> Void)? = nil) {
+        _name = State(initialValue: child.name)
+        _balance = State(initialValue: child.balance)
+        _iban = State(initialValue: child.iban)
+        self.childId = child.id
         self.onLogout = onLogout
     }
 
@@ -34,12 +38,14 @@ struct ParentProfileView: View {
     }
 
     private func refreshProfile() async {
-        guard let parentId else { return }
+        guard let childId else { return }
         do {
-            let info = try await childInfoService.getChildInfo(childId: parentId)
+            let info = try await childInfoService.getChildInfo(childId: childId)
             let displayName = info.surname.isEmpty ? info.name : "\(info.name) \(info.surname)"
             await MainActor.run {
-                profile = ParentProfile(name: displayName, balance: info.balance, iban: info.iban)
+                name = displayName
+                balance = Decimal(info.balance)
+                iban = info.iban
             }
         } catch {}
     }
@@ -57,10 +63,10 @@ struct ParentProfileView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(profile?.name ?? "Parent")
+                    Text(name)
                         .font(FontType.bold.fontType(size: 22))
                         .foregroundStyle(.primary)
-                    Text("Parent Account")
+                    Text("Child Account")
                         .font(FontType.regular.fontType(size: 14))
                         .foregroundStyle(.secondary)
                 }
@@ -75,8 +81,8 @@ struct ParentProfileView: View {
     private var bankCardSection: some View {
         BankCardView(
             cardTitle: "TBC Card",
-            balance: Decimal(profile?.balance ?? 0),
-            iban: profile?.iban ?? ""
+            balance: balance,
+            iban: iban
         )
         .padding(.horizontal, 20)
         .padding(.top, 20)
@@ -104,8 +110,7 @@ struct ParentProfileView: View {
 }
 
 #Preview {
-    ParentProfileView(
-        profile: ParentProfile(name: "Simon Petrikov", balance: 4700, iban: "GE45TB7964511000000001"),
-        parentId: 1
+    ChildProfileView(
+        child: Children(id: 1, name: "Marceline Petrikov", role: .children, avatarEmoji: "👧", balance: 1500, iban: "GE45TB7964511000000001")
     )
 }

@@ -56,7 +56,7 @@ final class MyChildrenViewModel: ObservableObject {
     static let goalIconSfSymbols: [String] = [
         "target", "bicycle", "gamecontroller.fill", "airplane", "iphone",
         "graduationcap.fill", "gift.fill", "heart.fill", "star.fill", "trophy.fill",
-        "rocket.fill", "music.note", "camera.fill", "square", "paintpalette.fill",
+        "car.side", "music.note", "camera.fill", "square", "paintpalette.fill",
         "tshirt.fill", "fork.knife", "birthday.cake.fill", "bag.fill", "house.fill"
     ]
 

@@ -59,7 +59,9 @@ final class MainTabCoordinator: CoordinatorProtocol {
             childrenNav.tabBarItem.tag = 0
             viewControllers.append(childrenNav)
 
-            let profileView = ParentProfileView(profile: parentProfile, parentId: parentId)
+            let profileView = ParentProfileView(profile: parentProfile, parentId: parentId, onLogout: { [weak self] in
+                self?.appCoordinator?.logout()
+            })
             let profileNav = UINavigationController(rootViewController: makeHostingController(for: profileView))
             profileNav.tabBarItem = UITabBarItem(
                 title: "Profile",
@@ -70,7 +72,8 @@ final class MainTabCoordinator: CoordinatorProtocol {
             viewControllers.append(profileNav)
 
         case .children:
-            let childId = children.first?.id
+            let child = children.first
+            let childId = child?.id
             let bankNav = UINavigationController(rootViewController: makeHostingController(for: ChildMainView(goals: piggyBanks, childId: childId)))
             bankNav.tabBarItem = UITabBarItem(
                 title: "Bank",
@@ -80,14 +83,19 @@ final class MainTabCoordinator: CoordinatorProtocol {
             bankNav.tabBarItem.tag = 0
             viewControllers.append(bankNav)
 
-            let awardsNav = UINavigationController(rootViewController: makeHostingController(for: AwardsView()))
-            awardsNav.tabBarItem = UITabBarItem(
-                title: "Awards",
-                image: UIImage(systemName: "trophy"),
-                selectedImage: UIImage(systemName: "trophy.fill")
-            )
-            awardsNav.tabBarItem.tag = 1
-            viewControllers.append(awardsNav)
+            if let child {
+                let profileView = ChildProfileView(child: child, onLogout: { [weak self] in
+                    self?.appCoordinator?.logout()
+                })
+                let profileNav = UINavigationController(rootViewController: makeHostingController(for: profileView))
+                profileNav.tabBarItem = UITabBarItem(
+                    title: "Profile",
+                    image: UIImage(systemName: "person.circle"),
+                    selectedImage: UIImage(systemName: "person.circle.fill")
+                )
+                profileNav.tabBarItem.tag = 1
+                viewControllers.append(profileNav)
+            }
         }
 
         tabBarController.setViewControllers(viewControllers, animated: false)

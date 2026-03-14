@@ -18,7 +18,7 @@ private let goalIcons: [(name: String, sfSymbol: String)] = [
     ("heart", "heart.fill"),
     ("star", "star.fill"),
     ("trophy", "trophy.fill"),
-    ("rocket", "rocket.fill"),
+    ("car", "car.side"),
     ("music", "music.note"),
     ("camera", "camera.fill"),
     ("square", "square"),

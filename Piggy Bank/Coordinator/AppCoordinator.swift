@@ -57,4 +57,9 @@ final class AppCoordinator: CoordinatorProtocol {
             nav.setNavigationBarHidden(true, animated: true)
         }
     }
+
+    func logout() {
+        childCoordinators.removeAll()
+        start()
+    }
 }
